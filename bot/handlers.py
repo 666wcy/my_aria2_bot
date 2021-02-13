@@ -53,10 +53,10 @@ def uploader(updater, update, message, download, ftype):
     op = ""
     if ftype == 'folder':
         op = subprocess.run(
-            ['bash', 'folder.sh', f"{download.name}"], check=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
+            ['bash', '/bot/folder.sh', f"{download.name}"], check=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
     if ftype == 'file':
         op = subprocess.run(
-            ['bash', 'folder.sh', f"downloads/{download.name}"], check=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
+            ['bash', '/bot/folder.sh', f"downloads/{download.name}"], check=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
     print(op)
     print("Download instance finished")
     updater.bot.send_message(chat_id=BOT_LOG_CHAT, text=f'Upload complete')
