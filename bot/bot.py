@@ -15,8 +15,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 import requests
 import sys
-from tzlocal import get_localzone
-tz = get_localzone()
  
 title=os.environ.get('Title')
 

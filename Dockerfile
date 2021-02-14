@@ -6,6 +6,8 @@ FROM ubuntu
 RUN apt-get update
 RUN apt-get install sudo
 RUN sudo apt-get update
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN echo 'Asia/Shanghai' >/etc/timezone
 RUN apt-get install wget -y
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN sudo apt-get install python3-distutils -y
