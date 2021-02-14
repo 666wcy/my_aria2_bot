@@ -1,5 +1,5 @@
 import aria2p
-import socket
+
 import os
 
 from aria2p.downloads import Download

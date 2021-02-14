@@ -5,10 +5,29 @@ import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Dispatcher, CallbackQueryHandler
 from telegram.ext.dispatcher import run_async
 import aria
+import aria2p
 import time
+import psutil
 from services import murror, muggnet
 from handlers import button
 import handlers
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
+import requests
+import sys
+
+title=os.environ.get('Title')
+
+aria2=aria2p.API = aria2p.API(
+    aria2p.Client(
+        host=f"http://127.0.0.1",
+        port=os.environ.get("PORT"),
+        #secret="wcy98151"
+        secret=os.environ.get("Secret")
+
+    )
+)
+
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -230,6 +249,44 @@ def main():
     updater.start_polling()
     updater.idle()
 
+def new_clock():
+    downloads = aria2.get_downloads()
+    for download in downloads:
+        print(download.status)
+        if download.status=="active":
+            print(download.name, download.download_speed)
+            print("任务正在进行,保持唤醒")           
+            print(requests.get(url=f"https://{title}.herokuapp.com/"))
+            sys.stdout.flush()
+            break
+    else:
+        print("无正在下载任务")
+        sys.stdout.flush()
+        
+def second_clock():
+    for proc in psutil.process_iter():
+        try:
+            pinfo = proc.as_dict(attrs=['pid', 'name'])
+        except psutil.NoSuchProcess:
+            pass
+        else:
+            if "rclone" in str(pinfo['name']):
+                print("rclone 正在上传")
+                print(requests.get(url=f"https://{title}.herokuapp.com/"))
+                sys.stdout.flush()
+                break
+    else:
+        print("rclone 不在运行")
+        sys.stdout.flush()
 
 if __name__ == '__main__':
+    #scheduler = BlockingScheduler()
+    scheduler = BackgroundScheduler()
+
+    scheduler.add_job(new_clock, "interval", seconds=60)
+    scheduler.add_job(second_clock, "interval", seconds=60)
+    print("开启监控")
+    sys.stdout.flush()
+    scheduler.start()
     main()
+

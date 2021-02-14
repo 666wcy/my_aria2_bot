@@ -22,7 +22,8 @@ COPY config /root/.aria2/
 COPY root /
 
 RUN pip3 install -r requirements.txt
-
+RUN pip3 install apscheduler
+RUN pip3 install psutil
 COPY bot /bot
 
 RUN sudo chmod 777 /root/.aria2/
