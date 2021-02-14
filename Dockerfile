@@ -11,6 +11,7 @@ RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN sudo apt-get install python3-distutils -y
 RUN python3 get-pip.py
 
+RUN apt install tzdata -y
 
 RUN apt-get install aria2 -y
 RUN apt install wget -y
@@ -23,6 +24,7 @@ COPY root /
 
 RUN pip3 install -r requirements.txt
 RUN pip3 install apscheduler
+RUN pip3 install psutil
 RUN pip3 install psutil
 COPY bot /bot
 
