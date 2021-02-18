@@ -5,13 +5,15 @@ import telebot
 import requests
 import sys
 import os
+import time
+os.environ['Aria2_host']="http://127.0.0.1"
 from modules.delete import file_del
 from modules.new_download import the_download
 from modules.resume import file_resume
 from modules.pause import file_pause
 import threading
 import aria2p
-os.environ['Aria2_host']="http://127.0.0.1"
+
 Aria2_host=os.environ.get('Aria2_host')
 Aria2_port=os.environ.get('PORT')
 Aria2_secret=os.environ.get('Aria2_secret')
@@ -182,3 +184,13 @@ if __name__ == '__main__':
     print("开启监控")
     sys.stdout.flush()
     scheduler.start()
+    bot.enable_save_next_step_handlers(delay=2)
+
+    # Load next_step_handlers from save file (default "./.handlers-saves/step.save")
+    # WARNING It will work only if enable_save_next_step_handlers was called!
+    bot.load_next_step_handlers()
+    while True:
+        try:
+            bot.polling(none_stop=True)
+        except Exception as e:
+            time.sleep(3)
