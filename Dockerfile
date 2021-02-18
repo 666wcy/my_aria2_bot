@@ -25,6 +25,7 @@ COPY config /root/.aria2/
 COPY root /
 
 RUN pip3 install pyTelegramBotAPI
+RUN pip3 install aria2p
 RUN pip3 install requests
 RUN pip3 install apscheduler
 RUN pip3 install psutil
