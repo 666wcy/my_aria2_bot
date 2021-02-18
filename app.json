@@ -10,7 +10,7 @@
 				"value": ""
 			},
 			"Secret": {
-				"description": "Secret",
+				"description": "Aria2_secret",
 				"value": ""
 			},
 			"Rclone": {

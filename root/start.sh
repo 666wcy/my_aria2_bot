@@ -12,5 +12,5 @@ wget git.io/tracker.sh
 chmod 0777 /tracker.sh
 /bin/bash tracker.sh "/root/.aria2/aria2.conf"
 
-nohup aria2c --conf-path=/root/.aria2/aria2.conf --rpc-listen-port=$PORT --rpc-secret=$Secret &
+nohup aria2c --conf-path=/root/.aria2/aria2.conf --rpc-listen-port=$PORT --rpc-secret=$Aria2_secret &
 python3 /bot/main.py
