@@ -11,6 +11,7 @@ from modules.resume import file_resume
 from modules.pause import file_pause
 import threading
 import aria2p
+os.environ['Aria2_host']="http://127.0.0.1"
 Aria2_host=os.environ.get('Aria2_host')
 Aria2_port=os.environ.get('PORT')
 Aria2_secret=os.environ.get('Aria2_secret')
