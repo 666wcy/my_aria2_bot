@@ -5,6 +5,8 @@ import telebot
 from telebot import types
 import subprocess
 import sys
+import ctypes
+
 Telegram_bot_api=os.environ.get('Telegram_bot_api')
 Aria2_host=os.environ.get('Aria2_host')
 Aria2_port=os.environ.get('PORT')
@@ -17,6 +19,20 @@ aria2 = aria2p.API(
         secret=Aria2_secret
     )
 )
+
+def get_free_space_mb(folder):
+    """
+    获取磁盘剩余空间
+    :param folder: 磁盘路径 例如 D:\\
+    :return: 剩余空间 单位 G
+    """
+    if platform.system() == 'Windows':
+        free_bytes = ctypes.c_ulonglong(0)
+        ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(folder), None, None, ctypes.pointer(free_bytes))
+        return free_bytes.value / 1024 / 1024 // 1024
+    else:
+        st = os.statvfs(folder)
+        return st.f_bavail * st.f_frsize / 1024 // 1024
 
 def progessbar(new, tot):
     """Builds progressbar
@@ -49,12 +65,12 @@ def run_rclone(dir,title,name,info,file_num):
     markup = types.InlineKeyboardMarkup()
 
     markup.add(types.InlineKeyboardButton(f"Resume", callback_data=f"Resume {name}"),
-           types.InlineKeyboardButton(f"Pause", callback_data=f"Pause {name}"),
-           types.InlineKeyboardButton(f"Remove", callback_data=f"Remove {name}"))
+               types.InlineKeyboardButton(f"Pause", callback_data=f"Pause {name}"),
+               types.InlineKeyboardButton(f"Remove", callback_data=f"Remove {name}"))
     if int(file_num)==1:
-        shell=f"rclone copy \"{dir}\" {Rclone_remote}:{Upload}  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
+        shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
     else:
-        shell=f"rclone copy \"{dir}\" {Rclone_remote}:{Upload}/{title}  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
+        shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}/{title}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
     print(shell)
     cmd = subprocess.Popen(shell, stdin=subprocess.PIPE, stderr=sys.stderr, close_fds=True,
                            stdout=subprocess.PIPE, universal_newlines=True, shell=True, bufsize=1)
@@ -86,11 +102,11 @@ def run_rclone(dir,title,name,info,file_num):
 
         if subprocess.Popen.poll(cmd) == 0:  # 判断子进程是否结束
             print("上传结束")
+            bot.send_message(text=f"{title}\n上传结束",chat_id=info.chat.id)
             os.remove(f"{name}.log")
-            break
+            return
 
     return cmd.returncode
-
 
 
 def the_download(url,message):
@@ -116,7 +132,8 @@ def the_download(url,message):
                          f"Progress : {hum_convert(download.completed_length)}/{hum_convert(download.total_length)} \n" \
                          f"Peers:{download.connections}\n" \
                          f"Speed {hum_convert(download.download_speed)}/s\n" \
-                         f"{barop}\n"
+                         f"{barop}\n" \
+                         f"Free:{get_free_space_mb('/')}GB"
             if prevmessagemag != updateText:
                 print(updateText)
                 bot.edit_message_text(text=updateText,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
@@ -146,8 +163,8 @@ def the_download(url,message):
     markup = types.InlineKeyboardMarkup()
 
     markup.add(types.InlineKeyboardButton(f"Resume", callback_data=f"Resume {currdownload.gid}"),
-           types.InlineKeyboardButton(f"Pause", callback_data=f"Pause {currdownload.gid}"),
-           types.InlineKeyboardButton(f"Remove", callback_data=f"Remove {currdownload.gid}"))
+               types.InlineKeyboardButton(f"Pause", callback_data=f"Pause {currdownload.gid}"),
+               types.InlineKeyboardButton(f"Remove", callback_data=f"Remove {currdownload.gid}"))
 
     bot.edit_message_text(text="Download complete",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
     prevmessage = None
@@ -189,7 +206,8 @@ def the_download(url,message):
                              f"Progress : {hum_convert(currdownload.completed_length)}/{hum_convert(currdownload.total_length)} \n" \
                              f"Peers:{currdownload.connections}\n" \
                              f"Speed {hum_convert(currdownload.download_speed)}/s\n" \
-                             f"{barop}\n"
+                             f"{barop}\n" \
+                             f"Free:{get_free_space_mb('/')}GB"
 
                 if prevmessage != updateText:
                     print(f"更新状态\n{updateText}")
@@ -212,12 +230,13 @@ def the_download(url,message):
                              f"Progress : {hum_convert(currdownload.completed_length)}/{hum_convert(currdownload.total_length)} \n" \
                              f"Peers:{currdownload.connections}\n" \
                              f"Speed {hum_convert(currdownload.download_speed)}/s\n" \
-                             f"{barop}\n"
+                             f"{barop}\n" \
+                             f"Free:{get_free_space_mb('/')}GB"
 
                 if prevmessage != updateText:
-                        print(f"更新状态\n{updateText}")
-                        bot.edit_message_text(text=updateText,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
-                        prevmessage = updateText
+                    print(f"更新状态\n{updateText}")
+                    bot.edit_message_text(text=updateText,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
+                    prevmessage = updateText
                 time.sleep(2)
             except Exception as e:
                 print(e)
@@ -239,5 +258,6 @@ def the_download(url,message):
             print(e)
             print("Upload Issue!")
     return None
+
 
 
