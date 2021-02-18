@@ -9,7 +9,7 @@
 				"description": "Remote",
 				"value": ""
 			},
-			"Secret": {
+			"Aria2_secret": {
 				"description": "Aria2_secret",
 				"value": ""
 			},
