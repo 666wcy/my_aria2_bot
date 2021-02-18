@@ -25,8 +25,8 @@
 				"description": "Telegram_user_id",
 				"value": ""
 			},
-			"BOT_API_KEY": {
-				"description": "BOT_API_KEY",
+			"Telegram_bot_api": {
+				"description": "Telegram_bot_api",
 				"value": ""
 			},
 			"Title": {
