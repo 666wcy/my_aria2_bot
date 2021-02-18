@@ -1,16 +1,32 @@
 
-
+import psutil
+from apscheduler.schedulers.background import BackgroundScheduler
 import telebot
-#import config
+import requests
+import sys
 import os
 from modules.delete import file_del
 from modules.new_download import the_download
 from modules.resume import file_resume
 from modules.pause import file_pause
 import threading
+import aria2p
+Aria2_host=os.environ.get('Aria2_host')
+Aria2_port=os.environ.get('PORT')
+Aria2_secret=os.environ.get('Aria2_secret')
 
+aria2 = aria2p.API(
+    aria2p.Client(
+        host=Aria2_host,
+        port=int(Aria2_port),
+        secret=Aria2_secret
+    )
+)
+
+title=os.environ.get('Title')
 Telegram_bot_api=os.environ.get('Telegram_bot_api')
 Telegram_user_id=os.environ.get('Telegram_user_id')
+
 
 bot = telebot.TeleBot(Telegram_bot_api)
 BOT_name=bot.get_me().username
@@ -124,9 +140,44 @@ def start_status(message):
         print("status函数报错")
 
 # Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print(BOT_name)
-    bot.send_message(chat_id=Telegram_user_id,text="bot已上线")
-    bot.polling()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
+def new_clock():
+    downloads = aria2.get_downloads()
+    for download in downloads:
+        print(download.status)
+        if download.status=="active":
+            print(download.name, download.download_speed)
+            print("任务正在进行,保持唤醒")
+            print(requests.get(url=f"https://{title}.herokuapp.com/"))
+            sys.stdout.flush()
+            break
+    else:
+        print("无正在下载任务")
+        sys.stdout.flush()
+
+def second_clock():
+    for proc in psutil.process_iter():
+        try:
+            pinfo = proc.as_dict(attrs=['pid', 'name'])
+        except psutil.NoSuchProcess:
+            pass
+        else:
+            if "rclone" in str(pinfo['name']):
+                print("rclone 正在上传")
+                print(requests.get(url=f"https://{title}.herokuapp.com/"))
+                sys.stdout.flush()
+                break
+    else:
+        print("rclone 不在运行")
+        sys.stdout.flush()
+
+if __name__ == '__main__':
+    #scheduler = BlockingScheduler()
+    scheduler = BackgroundScheduler()
+
+    scheduler.add_job(new_clock, "interval", seconds=60)
+    scheduler.add_job(second_clock, "interval", seconds=60)
+    print("开启监控")
+    sys.stdout.flush()
+    scheduler.start()

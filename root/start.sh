@@ -13,4 +13,4 @@ chmod 0777 /tracker.sh
 /bin/bash tracker.sh "/root/.aria2/aria2.conf"
 
 nohup aria2c --conf-path=/root/.aria2/aria2.conf --rpc-listen-port=$PORT --rpc-secret=$Secret &
-python3 /bot/bot.py
+python3 /bot/main.py

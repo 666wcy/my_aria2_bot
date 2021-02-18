@@ -21,8 +21,8 @@
 				"description": "Upload",
 				"value": ""
 			},
-			"User_id": {
-				"description": "User_id",
+			"Telegram_user_id": {
+				"description": "Telegram_user_id",
 				"value": ""
 			},
 			"BOT_API_KEY": {

@@ -43,7 +43,7 @@ def hum_convert(value):
 
 def run_rclone(dir,title,name,info,file_num):
 
-    Rclone_remote=os.environ.get('Rclone_remote')
+    Rclone_remote=os.environ.get('Remote')
     Upload=os.environ.get('Upload')
 
     markup = types.InlineKeyboardMarkup()
