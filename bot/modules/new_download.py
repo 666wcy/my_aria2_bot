@@ -5,6 +5,7 @@ import telebot
 from telebot import types
 import subprocess
 import sys
+import platform
 import ctypes
 
 Telegram_bot_api=os.environ.get('Telegram_bot_api')

@@ -182,6 +182,7 @@ if __name__ == '__main__':
     scheduler.add_job(new_clock, "interval", seconds=60)
     scheduler.add_job(second_clock, "interval", seconds=60)
     print("开启监控")
+    bot.send_message(chat_id=Telegram_user_id,text="bor已上线")
     sys.stdout.flush()
     scheduler.start()
     bot.enable_save_next_step_handlers(delay=2)
