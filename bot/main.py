@@ -6,9 +6,10 @@ import requests
 import sys
 import os
 import time
+#import config
 os.environ['Aria2_host']="http://127.0.0.1"
 from modules.delete import file_del
-from modules.new_download import the_download
+from modules.new_download import the_download,http_download
 from modules.resume import file_resume
 from modules.pause import file_pause
 import threading
@@ -117,6 +118,25 @@ def start_download(message):
 
     except:
         print("down函数错误")
+
+@bot.message_handler(commands=['mirror'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
+def start_http_download(message):
+    try:
+        keywords = str(message.text)
+        if str(BOT_name) in keywords:
+            keywords = keywords.replace(f"/mirror@{BOT_name} ", "")
+            print(keywords)
+            t1 = threading.Thread(target=http_download, args=(keywords,message))
+            t1.start()
+        else:
+            keywords = keywords.replace(f"/mirror ", "")
+            print(keywords)
+            t1 = threading.Thread(target=http_download, args=(keywords,message))
+            t1.start()
+
+    except:
+        print("down函数错误")
+
 
 @bot.message_handler(commands=['status'],func=lambda message:message.chat.type == "private")
 def start_status(message):

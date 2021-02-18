@@ -92,7 +92,7 @@ def run_rclone(dir,title,name,info,file_num):
                 print (f"上传中\n{last_line}")
                 if temp_text != last_line:
 
-                    bot.edit_message_text(text=f"{title}\n上传中\n{last_line}",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown',reply_markup=markup)
+                    bot.edit_message_text(text=f"{title}\n上传中\n{last_line}",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
                     temp_text = last_line
                 f.close()
 
@@ -261,4 +261,106 @@ def the_download(url,message):
     return None
 
 
+def http_download(url,message):
+    try:
+        currdownload = aria2.add_uris([url])
+    except Exception as e:
+        print(e)
+        if (str(e).endswith("No URI to download.")):
+            print("No link provided!")
+            bot.send_message(chat_id=message.chat.id,text="No link provided!",parse_mode='Markdown')
+            return None
 
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(f"Resume", callback_data=f"Resume {currdownload.gid}"),
+               types.InlineKeyboardButton(f"Pause", callback_data=f"Pause {currdownload.gid}"),
+               types.InlineKeyboardButton(f"Remove", callback_data=f"Remove {currdownload.gid}"))
+    info=bot.send_message(chat_id=message.chat.id,text="Downloading",parse_mode='Markdown')
+    prevmessage=None
+    while currdownload.is_active or not currdownload.is_complete:
+
+        try:
+            currdownload.update()
+        except Exception as e:
+            if (str(e).endswith("is not found")):
+                print("url Deleted")
+                print("url download was removed")
+                bot.edit_message_text(text="url download was removed",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
+                break
+            print(e)
+            print("url in downloading!")
+
+        if currdownload.status == 'removed':
+            print("url was cancelled")
+            print("url download was cancelled")
+            bot.edit_message_text(text="Magnet download was cancelled",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
+            break
+
+        if currdownload.status == 'error':
+            print("url had an error")
+            currdownload.remove(force=True, files=True)
+            print("url failed to resume/download!.")
+            bot.edit_message_text(text="Magnet failed to resume/download!\nRun /cancel once and try again.",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
+            break
+
+        print(f"url Status? {currdownload.status}")
+
+        if currdownload.status == "active":
+            try:
+                currdownload.update()
+                barop = progessbar(currdownload.completed_length,currdownload.total_length)
+
+                updateText = f"Downloading \n" \
+                             f"'{currdownload.name}'\n" \
+                             f"Progress : {hum_convert(currdownload.completed_length)}/{hum_convert(currdownload.total_length)} \n" \
+                             f"Speed {hum_convert(currdownload.download_speed)}/s\n" \
+                             f"{barop}\n" \
+                             f"Free:{get_free_space_mb('/')}GB"
+
+                if prevmessage != updateText:
+                    print(f"更新状态\n{updateText}")
+                    bot.edit_message_text(text=updateText,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
+                    prevmessage = updateText
+                time.sleep(2)
+            except Exception as e:
+                if (str(e).endswith("is not found")):
+                    break
+                print(e)
+                print("Issue in downloading!")
+                time.sleep(2)
+        elif currdownload.status == "paused":
+            try:
+                currdownload.update()
+                barop = progessbar(currdownload.completed_length,currdownload.total_length)
+
+                updateText = f"Downloading \n" \
+                             f"'{currdownload.name}'\n" \
+                             f"Progress : {hum_convert(currdownload.completed_length)}/{hum_convert(currdownload.total_length)} \n" \
+                             f"Speed {hum_convert(currdownload.download_speed)}/s\n" \
+                             f"{barop}\n" \
+                             f"Free:{get_free_space_mb('/')}GB"
+
+                if prevmessage != updateText:
+                    print(f"更新状态\n{updateText}")
+                    bot.edit_message_text(text=updateText,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
+                    prevmessage = updateText
+                time.sleep(2)
+            except Exception as e:
+                print(e)
+                print("Download Paused Flood")
+                time.sleep(2)
+        time.sleep(2)
+
+        time.sleep(1)
+    if currdownload.is_complete:
+        print(currdownload.name)
+        try:
+            print("开始上传")
+            file_dir=f"{currdownload.dir}/{currdownload.name}"
+            run_rclone(file_dir,currdownload.name,currdownload.gid,info=info,file_num=1)
+            currdownload.remove(force=True,files=True)
+
+        except Exception as e:
+            print(e)
+            print("Upload Issue!")
+    return None
