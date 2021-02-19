@@ -206,7 +206,7 @@ if __name__ == '__main__':
     # WARNING It will work only if enable_save_next_step_handlers was called!
     while True:
         try:
-            bot.infinity_polling(none_stop=True)
+            bot.infinity_polling()
         except Exception as e:
             print(e)
             time.sleep(3)
