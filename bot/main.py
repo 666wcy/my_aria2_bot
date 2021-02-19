@@ -89,7 +89,7 @@ def add_del(call):
 def start_rclonecopy(message):
     firstdir = message.text.split()[1]
     seconddir= message.text.split()[2]
-    t1 = threading.Thread(target=the_download, args=(firstdir,seconddir,message))
+    t1 = threading.Thread(target=run_rclonecopy, args=(firstdir,seconddir,message))
     t1.start()
 
 
@@ -194,10 +194,10 @@ if __name__ == '__main__':
     scheduler.add_job(new_clock, "interval", seconds=60)
     scheduler.add_job(second_clock, "interval", seconds=60)
     print("开启监控")
-    bot.send_message(chat_id=Telegram_user_id,text="bor已上线")
+    
     sys.stdout.flush()
     scheduler.start()
-
+    bot.send_message(chat_id=Telegram_user_id,text="bor已上线")
     # Load next_step_handlers from save file (default "./.handlers-saves/step.save")
     # WARNING It will work only if enable_save_next_step_handlers was called!
     while True:
