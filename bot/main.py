@@ -94,7 +94,7 @@ def start_rclonecopy(message):
 
 
 @bot.message_handler(commands=['help'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
-def start_rclonecopy(message):
+def start_help(message):
     bot.send_message(chat_id=message.chat.id,text=message.text)
 
 @bot.message_handler(commands=['magnet'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
@@ -198,7 +198,7 @@ if __name__ == '__main__':
     scheduler.add_job(new_clock, "interval", seconds=60)
     scheduler.add_job(second_clock, "interval", seconds=60)
     print("开启监控")
-    
+
     sys.stdout.flush()
     scheduler.start()
     bot.send_message(chat_id=Telegram_user_id,text="bor已上线")
@@ -206,7 +206,7 @@ if __name__ == '__main__':
     # WARNING It will work only if enable_save_next_step_handlers was called!
     while True:
         try:
-            bot.polling(none_stop=True)
+            bot.infinity_polling(none_stop=True)
         except Exception as e:
             print(e)
             time.sleep(3)
