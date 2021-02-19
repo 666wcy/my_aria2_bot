@@ -12,6 +12,7 @@ from modules.delete import file_del
 from modules.new_download import the_download,http_download
 from modules.resume import file_resume
 from modules.pause import file_pause
+from modules.rclone import run_rclonecopy
 import threading
 import aria2p
 
@@ -84,22 +85,13 @@ def add_del(call):
     except Exception as e:
         print(e)
 
-@bot.message_handler(commands=['del'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
-def start_del(message):
+@bot.message_handler(commands=['rclonecopy'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
+def start_rclonecopy(message):
+    firstdir = message.text.split()[1]
+    seconddir= message.text.split()[2]
+    t1 = threading.Thread(target=the_download, args=(firstdir,seconddir,message))
+    t1.start()
 
-        keywords = str(message.text)
-        if str(BOT_name) in keywords:
-            keywords = keywords.replace(f"/del@{BOT_name} ", "")
-            print(keywords)
-            result_text=file_del(keywords)
-            bot.send_message(chat_id=message.chat.id,text=result_text)
-
-        else:
-            keywords = keywords.replace(f"/del ", "")
-            print(keywords)
-            result_text=file_del(keywords)
-            print(result_text)
-            #bot.send_message(chat_id=message.chat.id,text=result_text)
 
 @bot.message_handler(commands=['magnet'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
 def start_download(message):
@@ -205,13 +197,12 @@ if __name__ == '__main__':
     bot.send_message(chat_id=Telegram_user_id,text="bor已上线")
     sys.stdout.flush()
     scheduler.start()
-    bot.enable_save_next_step_handlers(delay=2)
 
     # Load next_step_handlers from save file (default "./.handlers-saves/step.save")
     # WARNING It will work only if enable_save_next_step_handlers was called!
-    bot.load_next_step_handlers()
     while True:
         try:
             bot.polling(none_stop=True)
         except Exception as e:
+            print(e)
             time.sleep(3)
