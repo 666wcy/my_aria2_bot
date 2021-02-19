@@ -93,6 +93,10 @@ def start_rclonecopy(message):
     t1.start()
 
 
+@bot.message_handler(commands=['help'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
+def start_rclonecopy(message):
+    bot.send_message(chat_id=message.chat.id,text=message.text)
+
 @bot.message_handler(commands=['magnet'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
 def start_download(message):
     try:
