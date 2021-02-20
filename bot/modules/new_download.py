@@ -22,19 +22,18 @@ aria2 = aria2p.API(
     )
 )
 
-def get_free_space_mb(folder):
-    """
-    获取磁盘剩余空间
-    :param folder: 磁盘路径 例如 D:\\
-    :return: 剩余空间 单位 G
-    """
-    if platform.system() == 'Windows':
-        free_bytes = ctypes.c_ulonglong(0)
-        ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(folder), None, None, ctypes.pointer(free_bytes))
-        return free_bytes.value / 1024 / 1024 // 1024
-    else:
-        st = os.statvfs(folder)
-        return st.f_bavail * st.f_frsize / 1024 // 1024
+def get_free_space_mb():
+    result=os.statvfs('/root/')
+    block_size=result.f_frsize
+    total_blocks=result.f_blocks
+    free_blocks=result.f_bfree
+    # giga=1024*1024*1024
+    giga=1000*1000*1000
+    total_size=total_blocks*block_size/giga
+    free_size=free_blocks*block_size/giga
+    print('total_size = %s' % int(total_size))
+    print('free_size = %s' % free_size)
+    return int(free_size)
 
 def progessbar(new, tot):
     """Builds progressbar
@@ -137,7 +136,7 @@ def the_download(url,message):
                          f"Peers:{download.connections}\n" \
                          f"Speed {hum_convert(download.download_speed)}/s\n" \
                          f"{barop}\n" \
-                         f"Free:{get_free_space_mb('/')}GB"
+                         f"Free:{get_free_space_mb()}GB"
             if prevmessagemag != updateText:
                 print(updateText)
                 bot.edit_message_text(text=updateText,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
@@ -164,7 +163,7 @@ def the_download(url,message):
             currdownload = download
             break
     print("Download complete")
-    download.remove(force=True,files=True)
+    
     markup = types.InlineKeyboardMarkup()
 
     markup.add(types.InlineKeyboardButton(f"Resume", callback_data=f"Resume {currdownload.gid}"),
@@ -173,6 +172,8 @@ def the_download(url,message):
 
     bot.edit_message_text(text="Download complete",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
     prevmessage = None
+    time.sleep(3)
+    download.remove(force=True,files=True)
     while currdownload.is_active or not currdownload.is_complete:
 
         try:
@@ -212,7 +213,7 @@ def the_download(url,message):
                              f"Peers:{currdownload.connections}\n" \
                              f"Speed {hum_convert(currdownload.download_speed)}/s\n" \
                              f"{barop}\n" \
-                             f"Free:{get_free_space_mb('/')}GB"
+                             f"Free:{get_free_space_mb()}GB"
 
                 if prevmessage != updateText:
                     print(f"更新状态\n{updateText}")
@@ -236,7 +237,7 @@ def the_download(url,message):
                              f"Peers:{currdownload.connections}\n" \
                              f"Speed {hum_convert(currdownload.download_speed)}/s\n" \
                              f"{barop}\n" \
-                             f"Free:{get_free_space_mb('/')}GB"
+                             f"Free:{get_free_space_mb()}GB"
 
                 if prevmessage != updateText:
                     print(f"更新状态\n{updateText}")
@@ -319,7 +320,7 @@ def http_download(url,message):
                              f"Progress : {hum_convert(currdownload.completed_length)}/{hum_convert(currdownload.total_length)} \n" \
                              f"Speed {hum_convert(currdownload.download_speed)}/s\n" \
                              f"{barop}\n" \
-                             f"Free:{get_free_space_mb('/')}GB"
+                             f"Free:{get_free_space_mb()}GB"
 
                 if prevmessage != updateText:
                     print(f"更新状态\n{updateText}")
@@ -342,7 +343,7 @@ def http_download(url,message):
                              f"Progress : {hum_convert(currdownload.completed_length)}/{hum_convert(currdownload.total_length)} \n" \
                              f"Speed {hum_convert(currdownload.download_speed)}/s\n" \
                              f"{barop}\n" \
-                             f"Free:{get_free_space_mb('/')}GB"
+                             f"Free:{get_free_space_mb()}GB"
 
                 if prevmessage != updateText:
                     print(f"更新状态\n{updateText}")
