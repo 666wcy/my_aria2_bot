@@ -86,7 +86,7 @@ def run_rclone(dir,title,info,file_num):
 
                 print (f"上传中\n{last_line}")
                 if temp_text != last_line and "ETA" in last_line:
-                    log_time,file_part,upload_Progress,upload_speed,part_time=re.findall("(.*?)INFO.*?:.*?(\d.*?),.*?(\d+%),.*?(\d.*?),.*?ETA(\d.*?s)",last_line , re.S)[0]
+                    log_time,file_part,upload_Progress,upload_speed,part_time=re.findall("(.*?)INFO.*?(\d.*?),.*?(\d+%),.*?(\d.*?s).*?ETA.*?(\d.*?s)",last_line , re.S)[0]
                     text=f"{title}\n" \
                          f"更新时间：`{log_time}`\n" \
                          f"上传部分：`{file_part}`\n" \
