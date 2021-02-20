@@ -5,10 +5,10 @@ import telebot
 from telebot import types
 import subprocess
 import sys
-import platform
-import ctypes
+import datetime
+import pytz
 import re
-
+tz = pytz.timezone('Asia/Shanghai') #东八区
 Telegram_bot_api=os.environ.get('Telegram_bot_api')
 Aria2_host=os.environ.get('Aria2_host')
 Aria2_port=os.environ.get('PORT')
@@ -27,7 +27,6 @@ def get_free_space_mb():
     block_size=result.f_frsize
     total_blocks=result.f_blocks
     free_blocks=result.f_bfree
-    # giga=1024*1024*1024
     giga=1000*1000*1000
     total_size=total_blocks*block_size/giga
     free_size=free_blocks*block_size/giga
@@ -62,12 +61,12 @@ def run_rclone(dir,title,info,file_num):
 
     Rclone_remote=os.environ.get('Remote')
     Upload=os.environ.get('Upload')
-
+    upload_data = datetime.datetime.fromtimestamp(int(time.time()),tz).strftime('%Y年%m月%d日')
     name=str(info.chat.id)
     if int(file_num)==1:
-        shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
+        shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}/{upload_data}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
     else:
-        shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}/{title}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
+        shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}/{upload_data}/{title}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
     print(shell)
     cmd = subprocess.Popen(shell, stdin=subprocess.PIPE, stderr=sys.stderr, close_fds=True,
                            stdout=subprocess.PIPE, universal_newlines=True, shell=True, bufsize=1)

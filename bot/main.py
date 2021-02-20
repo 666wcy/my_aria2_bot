@@ -42,6 +42,24 @@ BOT_name=bot.get_me().username
            BotCommand("del", "后接hash，删除种子")]
 print(bot.set_my_commands(commands=command))'''
 
+def check_group(user_id):
+    try:
+        info=bot.get_chat_member(chat_id=Telegram_user_id,user_id=user_id)
+        if info.status=='left':
+            print("不在群组")
+            text="要使用bot,请先加入群组\nhttps://t.me/OneDrive_1oveClub"
+            bot.send_message(chat_id=user_id,text=text)
+            return False
+        else:
+            return True
+    except Exception as e:
+        print(e)
+        if "user not found" in str(e):
+            print("不在群组")
+            text="要使用bot,请先加入群组\nhttps://t.me/OneDrive_1oveClub"
+            bot.send_message(chat_id=user_id,text=text)
+            return False
+
 
 @bot.callback_query_handler(func=lambda call: "Pause" in call.data)
 def add_pause(call):
@@ -85,7 +103,7 @@ def add_del(call):
     except Exception as e:
         print(f"Remove :{e}")
 
-@bot.message_handler(commands=['rclonecopy'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
+@bot.message_handler(commands=['rclonecopy'],func=lambda message:message.chat.type == "private" and check_group(user_id=message.from_user.id)==True )
 def start_rclonecopy(message):
     try:
         firstdir = message.text.split()[1]
@@ -95,11 +113,11 @@ def start_rclonecopy(message):
     except Exception as e:
         print(f"rclonecopy :{e}")
 
-@bot.message_handler(commands=['help'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
+@bot.message_handler(commands=['help'],func=lambda message:message.chat.type == "private" and check_group(user_id=message.from_user.id)==True )
 def start_help(message):
     bot.send_message(chat_id=message.chat.id,text=message.text)
 
-@bot.message_handler(commands=['magnet'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
+@bot.message_handler(commands=['magnet'],func=lambda message:message.chat.type == "private" and check_group(user_id=message.from_user.id)==True )
 def start_download(message):
     try:
         keywords = str(message.text)
@@ -117,7 +135,7 @@ def start_download(message):
     except Exception as e:
         print(f"magnet :{e}")
 
-@bot.message_handler(commands=['mirror'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
+@bot.message_handler(commands=['mirror'],func=lambda message:message.chat.type == "private" and check_group(user_id=message.from_user.id)==True )
 def start_http_download(message):
     try:
         keywords = str(message.text)
@@ -134,33 +152,6 @@ def start_http_download(message):
 
     except Exception as e:
         print(f"start_http_download :{e}")
-
-
-
-
-@bot.message_handler(commands=['status'],func=lambda message:message.chat.type == "private")
-def start_status(message):
-    try:
-        keywords = str(message.text)
-        if keywords==f"/status@{BOT_name}":
-            print("全部种子")
-
-        elif str(BOT_name) in keywords:
-            # print(message.chat.type)
-            keywords = keywords.replace(f"/status@{BOT_name} ", "")
-            print("单个种子")
-
-        elif keywords=="/status":
-            print("全部种子")
-
-        else:
-
-            keywords = keywords.replace(f"/status ", "")
-            print("单个种子")
-
-
-    except:
-        print("status函数报错")
 
 # Press the green button in the gutter to run the script.
 
@@ -179,8 +170,7 @@ def new_clock():
             print("无正在下载任务")
             sys.stdout.flush()
     except Exception as e:
-            print(f"new_clock error :{e}")
-
+        print(f"new_clock error :{e}")
 
 def second_clock():
     try:
@@ -211,7 +201,7 @@ if __name__ == '__main__':
 
     sys.stdout.flush()
     scheduler.start()
-    bot.send_message(chat_id=Telegram_user_id,text="bot已上线")
+    #bot.send_message(chat_id=Telegram_user_id,text="bot已上线")
     # Load next_step_handlers from save file (default "./.handlers-saves/step.save")
     # WARNING It will work only if enable_save_next_step_handlers was called!
     while True:
