@@ -113,6 +113,7 @@ def run_rclone(dir,title,info,file_num):
 
 
 def the_download(url,message):
+    os.system("df -lh")
     try:
         download = aria2.add_magnet(url)
     except Exception as e:
@@ -163,7 +164,7 @@ def the_download(url,message):
             currdownload = download
             break
     print("Download complete")
-    
+
     markup = types.InlineKeyboardMarkup()
 
     markup.add(types.InlineKeyboardButton(f"Resume", callback_data=f"Resume {currdownload.gid}"),
@@ -172,8 +173,7 @@ def the_download(url,message):
 
     bot.edit_message_text(text="Download complete",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
     prevmessage = None
-    time.sleep(3)
-    download.remove(force=True,files=True)
+
     while currdownload.is_active or not currdownload.is_complete:
 
         try:
