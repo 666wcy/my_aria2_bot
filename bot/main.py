@@ -55,7 +55,7 @@ def add_pause(call):
         text=file_pause(key_data)
         bot.answer_callback_query(callback_query_id=call.id,text=text,cache_time=3)
     except Exception as e:
-        print(e)
+        print(f"Pause :{e}")
 
 @bot.callback_query_handler(func=lambda call: "Resume" in call.data)
 def add_resume(call):
@@ -69,7 +69,7 @@ def add_resume(call):
         text=file_resume(key_data)
         bot.answer_callback_query(callback_query_id=call.id,text=text,cache_time=3)
     except Exception as e:
-        print(e)
+        print(f"Resume :{e}")
 
 @bot.callback_query_handler(func=lambda call: "Remove" in call.data)
 def add_del(call):
@@ -83,15 +83,17 @@ def add_del(call):
         text=file_del(key_data)
         bot.answer_callback_query(callback_query_id=call.id,text=text,cache_time=3)
     except Exception as e:
-        print(e)
+        print(f"Remove :{e}")
 
 @bot.message_handler(commands=['rclonecopy'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
 def start_rclonecopy(message):
-    firstdir = message.text.split()[1]
-    seconddir= message.text.split()[2]
-    t1 = threading.Thread(target=run_rclonecopy, args=(firstdir,seconddir,message))
-    t1.start()
-
+    try:
+        firstdir = message.text.split()[1]
+        seconddir= message.text.split()[2]
+        t1 = threading.Thread(target=run_rclonecopy, args=(firstdir,seconddir,message))
+        t1.start()
+    except Exception as e:
+        print(f"rclonecopy :{e}")
 
 @bot.message_handler(commands=['help'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
 def start_help(message):
@@ -112,8 +114,8 @@ def start_download(message):
             t1 = threading.Thread(target=the_download, args=(keywords,message))
             t1.start()
 
-    except:
-        print("down函数错误")
+    except Exception as e:
+        print(f"magnet :{e}")
 
 @bot.message_handler(commands=['mirror'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
 def start_http_download(message):
@@ -130,8 +132,10 @@ def start_http_download(message):
             t1 = threading.Thread(target=http_download, args=(keywords,message))
             t1.start()
 
-    except:
-        print("down函数错误")
+    except Exception as e:
+        print(f"start_http_download :{e}")
+
+
 
 
 @bot.message_handler(commands=['status'],func=lambda message:message.chat.type == "private")
@@ -162,34 +166,40 @@ def start_status(message):
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 def new_clock():
-    downloads = aria2.get_downloads()
-    for download in downloads:
-        print(download.status)
-        if download.status=="active":
-            print(download.name, download.download_speed)
-            print("任务正在进行,保持唤醒")
-            print(requests.get(url=f"https://{title}.herokuapp.com/"))
-            sys.stdout.flush()
-            break
-    else:
-        print("无正在下载任务")
-        sys.stdout.flush()
-
-def second_clock():
-    for proc in psutil.process_iter():
-        try:
-            pinfo = proc.as_dict(attrs=['pid', 'name'])
-        except psutil.NoSuchProcess:
-            pass
-        else:
-            if "rclone" in str(pinfo['name']):
-                print("rclone 正在上传")
+    try:
+        downloads = aria2.get_downloads()
+        for download in downloads:
+            if download.status=="active":
+                print(download.name, download.download_speed)
+                print("任务正在进行,保持唤醒")
                 print(requests.get(url=f"https://{title}.herokuapp.com/"))
                 sys.stdout.flush()
                 break
-    else:
-        print("rclone 不在运行")
-        sys.stdout.flush()
+        else:
+            print("无正在下载任务")
+            sys.stdout.flush()
+    except Exception as e:
+            print(f"new_clock error :{e}")
+
+
+def second_clock():
+    try:
+        for proc in psutil.process_iter():
+            try:
+                pinfo = proc.as_dict(attrs=['pid', 'name'])
+            except psutil.NoSuchProcess:
+                pass
+            else:
+                if "rclone" in str(pinfo['name']):
+                    print("rclone 正在上传")
+                    print(requests.get(url=f"https://{title}.herokuapp.com/"))
+                    sys.stdout.flush()
+                    break
+        else:
+            print("rclone 不在运行")
+            sys.stdout.flush()
+    except Exception as e:
+        print(f"second_clock :{e}")
 
 if __name__ == '__main__':
     #scheduler = BlockingScheduler()
@@ -201,7 +211,7 @@ if __name__ == '__main__':
 
     sys.stdout.flush()
     scheduler.start()
-    bot.send_message(chat_id=Telegram_user_id,text="bor已上线")
+    bot.send_message(chat_id=Telegram_user_id,text="bot已上线")
     # Load next_step_handlers from save file (default "./.handlers-saves/step.save")
     # WARNING It will work only if enable_save_next_step_handlers was called!
     while True:

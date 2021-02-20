@@ -58,16 +58,12 @@ def hum_convert(value):
             return "%.2f%s" % (value, units[i])
         value = value / size
 
-def run_rclone(dir,title,name,info,file_num):
+def run_rclone(dir,title,info,file_num):
 
     Rclone_remote=os.environ.get('Remote')
     Upload=os.environ.get('Upload')
 
-    markup = types.InlineKeyboardMarkup()
-
-    markup.add(types.InlineKeyboardButton(f"Resume", callback_data=f"Resume {name}"),
-               types.InlineKeyboardButton(f"Pause", callback_data=f"Pause {name}"),
-               types.InlineKeyboardButton(f"Remove", callback_data=f"Remove {name}"))
+    name=str(info.chat.id)
     if int(file_num)==1:
         shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
     else:
@@ -107,7 +103,7 @@ def run_rclone(dir,title,name,info,file_num):
             os.remove(f"{name}.log")
             return
 
-    return cmd.returncode
+    return
 
 
 def the_download(url,message):
@@ -161,6 +157,7 @@ def the_download(url,message):
             currdownload = download
             break
     print("Download complete")
+    download.remove(force=True,files=True)
     markup = types.InlineKeyboardMarkup()
 
     markup.add(types.InlineKeyboardButton(f"Resume", callback_data=f"Resume {currdownload.gid}"),
@@ -246,13 +243,14 @@ def the_download(url,message):
         time.sleep(2)
 
         time.sleep(1)
+
     if currdownload.is_complete:
         print(currdownload.name)
         try:
             print("开始上传")
             file_dir=f"{currdownload.dir}/{currdownload.name}"
             files_num=int(len(currdownload.files))
-            run_rclone(file_dir,currdownload.name,currdownload.gid,info=info,file_num=files_num)
+            run_rclone(file_dir,currdownload.name,info=info,file_num=files_num)
             currdownload.remove(force=True,files=True)
 
         except Exception as e:
@@ -357,7 +355,7 @@ def http_download(url,message):
         try:
             print("开始上传")
             file_dir=f"{currdownload.dir}/{currdownload.name}"
-            run_rclone(file_dir,currdownload.name,currdownload.gid,info=info,file_num=1)
+            run_rclone(file_dir,currdownload.name,info=info,file_num=1)
             currdownload.remove(force=True,files=True)
 
         except Exception as e:
