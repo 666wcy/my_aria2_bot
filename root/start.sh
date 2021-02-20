@@ -12,7 +12,8 @@ wget git.io/tracker.sh
 chmod 0777 /tracker.sh
 /bin/bash tracker.sh "/root/.aria2/aria2.conf"
 
-git clone https://github.com/666wcy/my_aria2_bot
+git clone -b group https://github.com/666wcy/my_aria2_bot.git
+
 mkdir /bot/
 mv /my_aria2_bot/bot/* /bot/
 chmod 0777 /bot/ -R
