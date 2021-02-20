@@ -219,4 +219,4 @@ if __name__ == '__main__':
             bot.infinity_polling()
         except Exception as e:
             print(e)
-            time.sleep(3)
+            time.sleep(20)

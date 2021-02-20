@@ -7,6 +7,7 @@ import subprocess
 import sys
 import platform
 import ctypes
+import re
 
 Telegram_bot_api=os.environ.get('Telegram_bot_api')
 Aria2_host=os.environ.get('Aria2_host')
@@ -86,9 +87,15 @@ def run_rclone(dir,title,info,file_num):
                         break
 
                 print (f"上传中\n{last_line}")
-                if temp_text != last_line:
-
-                    bot.edit_message_text(text=f"{title}\n上传中\n{last_line}",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
+                if temp_text != last_line and "ETA" in last_line:
+                    log_time,file_part,upload_Progress,upload_speed,part_time=re.findall("(.*?)NOTICE:.*?(\d.*?), (\d+%), (.*?), (ETA .*?) \(xfr#3/15\)",last_line , re.S)[0]
+                    text=f"{title}\n" \
+                         f"更新时间：`{log_time}`\n" \
+                         f"上传部分：`{file_part}`\n" \
+                         f"上传进度：`{upload_Progress}`\n" \
+                         f"上传速度：`{upload_speed}`\n" \
+                         f"剩余时间:`{part_time}`"
+                    bot.edit_message_text(text=text,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
                     temp_text = last_line
                 f.close()
 
@@ -257,7 +264,6 @@ def the_download(url,message):
             print(e)
             print("Upload Issue!")
     return None
-
 
 def http_download(url,message):
     try:

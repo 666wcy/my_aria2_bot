@@ -1,9 +1,9 @@
 import os
 import time
 import telebot
-from telebot import types
 import subprocess
 import sys
+import re
 
 Telegram_bot_api=os.environ.get('Telegram_bot_api')
 bot = telebot.TeleBot(Telegram_bot_api)
@@ -32,9 +32,16 @@ def run_rclonecopy(onedir,twodir,message):
                         break
 
                 print (f"上传中\n{last_line}")
-                if temp_text != last_line:
-
-                    bot.edit_message_text(text=f"rclone运行中\n{last_line}",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
+                if temp_text != last_line and "ETA" in last_line:
+                    log_time,file_part,upload_Progress,upload_speed,part_time=re.findall("(.*?)NOTICE:.*?(\d.*?), (\d+%), (.*?), (ETA .*?) \(xfr#3/15\)",last_line , re.S)[0]
+                    text=f"源地址{onedir}\n" \
+                         f"目标地址{twodir}\n" \
+                         f"更新时间：`{log_time}`\n" \
+                     f"传输部分：`{file_part}`\n" \
+                     f"传输进度：`{upload_Progress}`\n" \
+                     f"传输速度：`{upload_speed}`\n" \
+                     f"剩余时间:`{part_time}`"
+                    bot.edit_message_text(text=text,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
                     temp_text = last_line
                 f.close()
 
