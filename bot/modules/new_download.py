@@ -63,7 +63,7 @@ def run_rclone(dir,title,info,file_num):
     Rclone_remote=os.environ.get('Remote')
     Upload=os.environ.get('Upload')
 
-    name=str(info.message_id)
+    name=f"{str(info.message_id)}_{str(info.chat.id)}"
     if int(file_num)==1:
         shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
     else:
