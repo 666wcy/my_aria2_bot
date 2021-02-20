@@ -1,19 +1,25 @@
-import aria2p
+
+import psutil
+from apscheduler.schedulers.background import BackgroundScheduler
+import telebot
+import requests
+import sys
 import os
 import time
-import telebot
-from telebot import types
-import subprocess
-import sys
-import datetime
-import pytz
-import re
-tz = pytz.timezone('Asia/Shanghai') #东八区
-Telegram_bot_api=os.environ.get('Telegram_bot_api')
+#import config
+os.environ['Aria2_host']="http://127.0.0.1"
+from modules.delete import file_del
+from modules.new_download import the_download,http_download
+from modules.resume import file_resume
+from modules.pause import file_pause
+from modules.rclone import run_rclonecopy
+import threading
+import aria2p
+
 Aria2_host=os.environ.get('Aria2_host')
 Aria2_port=os.environ.get('PORT')
 Aria2_secret=os.environ.get('Aria2_secret')
-bot = telebot.TeleBot(Telegram_bot_api)
+
 aria2 = aria2p.API(
     aria2p.Client(
         host=Aria2_host,
@@ -22,349 +28,185 @@ aria2 = aria2p.API(
     )
 )
 
-def get_free_space_mb():
-    result=os.statvfs('/root/')
-    block_size=result.f_frsize
-    total_blocks=result.f_blocks
-    free_blocks=result.f_bfree
-    giga=1000*1000*1000
-    total_size=total_blocks*block_size/giga
-    free_size=free_blocks*block_size/giga
-    print('total_size = %s' % int(total_size))
-    print('free_size = %s' % free_size)
-    return int(free_size)
+title=os.environ.get('Title')
+Telegram_bot_api=os.environ.get('Telegram_bot_api')
+Telegram_user_id=os.environ.get('Telegram_user_id')
 
-def progessbar(new, tot):
-    """Builds progressbar
-    Args:
-        new: current progress
-        tot: total length of the download
-    Returns:
-        progressbar as a string of length 20
-    """
-    length = 20
-    progress = int(round(length * new / float(tot)))
-    percent = round(new/float(tot) * 100.0, 1)
-    bar = '=' * progress + '-' * (length - progress)
-    return '[%s] %s %s\r' % (bar, percent, '%')
 
-def hum_convert(value):
-    value=float(value)
-    units = ["B", "KB", "MB", "GB", "TB", "PB"]
-    size = 1024.0
-    for i in range(len(units)):
-        if (value / size) < 1:
-            return "%.2f%s" % (value, units[i])
-        value = value / size
+bot = telebot.TeleBot(Telegram_bot_api)
+BOT_name=bot.get_me().username
+'''command = [BotCommand("status","查看所有种子状态"),
+           BotCommand("down", "后接磁力链接，下载种子"),
+           BotCommand("resume", "后接hash，继续种子任务"),
+           BotCommand("pause", "后接hash，暂停种子任务"),
+           BotCommand("del", "后接hash，删除种子")]
+print(bot.set_my_commands(commands=command))'''
 
-def run_rclone(dir,title,info,file_num):
+def check_group(user_id):
+    try:
+        info=bot.get_chat_member(chat_id=Telegram_user_id,user_id=user_id)
+        if info.status=='left':
+            print("不在群组")
+            text="要使用bot,请先加入群组\nhttps://t.me/OneDrive_1oveClub"
+            bot.send_message(chat_id=user_id,text=text)
+            return False
+        else:
+            return True
+    except Exception as e:
+        print(e)
+        if "user not found" in str(e):
+            print("不在群组")
+            text="要使用bot,请先加入群组\nhttps://t.me/OneDrive_1oveClub"
+            bot.send_message(chat_id=user_id,text=text)
+            return False
 
-    Rclone_remote=os.environ.get('Remote')
-    Upload=os.environ.get('Upload')
-    upload_data = datetime.datetime.fromtimestamp(int(time.time()),tz).strftime('%Y年%m月%d日')
-    name=str(info.chat.id)
-    if int(file_num)==1:
-        shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}/{upload_data}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
-    else:
-        shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}/{upload_data}/{title}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
-    print(shell)
-    cmd = subprocess.Popen(shell, stdin=subprocess.PIPE, stderr=sys.stderr, close_fds=True,
-                           stdout=subprocess.PIPE, universal_newlines=True, shell=True, bufsize=1)
-    # 实时输出
-    temp_text=None
+
+@bot.callback_query_handler(func=lambda call: "Pause" in call.data)
+def add_pause(call):
+    try:
+        print(call)
+        caption = str(call.message.text)
+        print(caption)
+        print(call.data)
+        key_data=str(call.data).replace("Pause ","")
+        print(key_data)
+        text=file_pause(key_data)
+        bot.answer_callback_query(callback_query_id=call.id,text=text,cache_time=3)
+    except Exception as e:
+        print(f"Pause :{e}")
+
+@bot.callback_query_handler(func=lambda call: "Resume" in call.data)
+def add_resume(call):
+    try:
+        print(call)
+        caption = str(call.message.text)
+        print(caption)
+        print(call.data)
+        key_data=str(call.data).replace("Resume ","")
+        print(key_data)
+        text=file_resume(key_data)
+        bot.answer_callback_query(callback_query_id=call.id,text=text,cache_time=3)
+    except Exception as e:
+        print(f"Resume :{e}")
+
+@bot.callback_query_handler(func=lambda call: "Remove" in call.data)
+def add_del(call):
+    try:
+        print(call)
+        caption = str(call.message.text)
+        print(caption)
+        print(call.data)
+        key_data=str(call.data).replace("Remove ","")
+        print(key_data)
+        text=file_del(key_data)
+        bot.answer_callback_query(callback_query_id=call.id,text=text,cache_time=3)
+    except Exception as e:
+        print(f"Remove :{e}")
+
+@bot.message_handler(commands=['rclonecopy'],func=lambda message:message.chat.type == "private" and check_group(user_id=message.from_user.id)==True )
+def start_rclonecopy(message):
+    try:
+        firstdir = message.text.split()[1]
+        seconddir= message.text.split()[2]
+        t1 = threading.Thread(target=run_rclonecopy, args=(firstdir,seconddir,message))
+        t1.start()
+    except Exception as e:
+        print(f"rclonecopy :{e}")
+
+@bot.message_handler(commands=['help'],func=lambda message:message.chat.type == "private" and check_group(user_id=message.from_user.id)==True )
+def start_help(message):
+    bot.send_message(chat_id=message.chat.id,text=message.text)
+
+@bot.message_handler(commands=['magnet'],func=lambda message:message.chat.type == "private" and check_group(user_id=message.from_user.id)==True )
+def start_download(message):
+    try:
+        keywords = str(message.text)
+        if str(BOT_name) in keywords:
+            keywords = keywords.replace(f"/magnet@{BOT_name} ", "")
+            print(keywords)
+            t1 = threading.Thread(target=the_download, args=(keywords,message))
+            t1.start()
+        else:
+            keywords = keywords.replace(f"/magnet ", "")
+            print(keywords)
+            t1 = threading.Thread(target=the_download, args=(keywords,message))
+            t1.start()
+
+    except Exception as e:
+        print(f"magnet :{e}")
+
+@bot.message_handler(commands=['mirror'],func=lambda message:message.chat.type == "private" and check_group(user_id=message.from_user.id)==True )
+def start_http_download(message):
+    try:
+        keywords = str(message.text)
+        if str(BOT_name) in keywords:
+            keywords = keywords.replace(f"/mirror@{BOT_name} ", "")
+            print(keywords)
+            t1 = threading.Thread(target=http_download, args=(keywords,message))
+            t1.start()
+        else:
+            keywords = keywords.replace(f"/mirror ", "")
+            print(keywords)
+            t1 = threading.Thread(target=http_download, args=(keywords,message))
+            t1.start()
+
+    except Exception as e:
+        print(f"start_http_download :{e}")
+
+# Press the green button in the gutter to run the script.
+
+# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+def new_clock():
+    try:
+        downloads = aria2.get_downloads()
+        for download in downloads:
+            if download.status=="active":
+                print(download.name, download.download_speed)
+                print("任务正在进行,保持唤醒")
+                print(requests.get(url=f"https://{title}.herokuapp.com/"))
+                sys.stdout.flush()
+                break
+        else:
+            print("无正在下载任务")
+            sys.stdout.flush()
+    except Exception as e:
+        print(f"new_clock error :{e}")
+
+def second_clock():
+    try:
+        for proc in psutil.process_iter():
+            try:
+                pinfo = proc.as_dict(attrs=['pid', 'name'])
+            except psutil.NoSuchProcess:
+                pass
+            else:
+                if "rclone" in str(pinfo['name']):
+                    print("rclone 正在上传")
+                    print(requests.get(url=f"https://{title}.herokuapp.com/"))
+                    sys.stdout.flush()
+                    break
+        else:
+            print("rclone 不在运行")
+            sys.stdout.flush()
+    except Exception as e:
+        print(f"second_clock :{e}")
+
+if __name__ == '__main__':
+    #scheduler = BlockingScheduler()
+    scheduler = BackgroundScheduler()
+
+    scheduler.add_job(new_clock, "interval", seconds=60)
+    scheduler.add_job(second_clock, "interval", seconds=60)
+    print("开启监控")
+
+    sys.stdout.flush()
+    scheduler.start()
+    bot.send_message(chat_id=Telegram_user_id,text="bot已上线")
+    # Load next_step_handlers from save file (default "./.handlers-saves/step.save")
+    # WARNING It will work only if enable_save_next_step_handlers was called!
     while True:
-        time.sleep(1)
-        fname = f'{name}.log'
-        with open(fname, 'r') as f:  #打开文件
-            try:
-                lines = f.readlines() #读取所有行
-
-                for a in range(-1,-10,-1):
-                    last_line = lines[a] #取最后一行
-                    if last_line !="\n":
-                        break
-
-                print (f"上传中\n{last_line}")
-                if temp_text != last_line and "ETA" in last_line:
-                    log_time,file_part,upload_Progress,upload_speed,part_time=re.findall("(.*?)INFO.*?(\d.*?),.*?(\d+%),.*?(\d.*?s).*?ETA.*?(\d.*?s)",last_line , re.S)[0]
-                    text=f"{title}\n" \
-                         f"更新时间：`{log_time}`\n" \
-                         f"上传部分：`{file_part}`\n" \
-                         f"上传进度：`{upload_Progress}`\n" \
-                         f"上传速度：`{upload_speed}`\n" \
-                         f"剩余时间:`{part_time}`"
-                    bot.edit_message_text(text=text,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
-                    temp_text = last_line
-                f.close()
-
-            except Exception as e:
-                print(e)
-                f.close()
-                continue
-
-        if subprocess.Popen.poll(cmd) == 0:  # 判断子进程是否结束
-            print("上传结束")
-            bot.send_message(text=f"{title}\n上传结束",chat_id=info.chat.id)
-            os.remove(f"{name}.log")
-            return
-
-    return
-
-
-def the_download(url,message):
-    os.system("df -lh")
-    try:
-        download = aria2.add_magnet(url)
-    except Exception as e:
-        print(e)
-        if (str(e).endswith("No URI to download.")):
-            print("No link provided!")
-            bot.send_message(chat_id=message.chat.id,text="No link provided!",parse_mode='Markdown')
-            return None
-    prevmessagemag = None
-    info=bot.send_message(chat_id=message.chat.id,text="Downloading",parse_mode='Markdown')
-    while download.is_active:
         try:
-            download.update()
-            print("Downloading metadata")
-            bot.edit_message_text(text="Downloading metadata",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
-            barop = progessbar(download.completed_length,download.total_length)
-
-            updateText = f"Downloading \n" \
-                         f"'{download.name}'\n" \
-                         f"Progress : {hum_convert(download.completed_length)}/{hum_convert(download.total_length)} \n" \
-                         f"Peers:{download.connections}\n" \
-                         f"Speed {hum_convert(download.download_speed)}/s\n" \
-                         f"{barop}\n" \
-                         f"Free:{get_free_space_mb()}GB"
-            if prevmessagemag != updateText:
-                print(updateText)
-                bot.edit_message_text(text=updateText,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
-                prevmessagemag = updateText
-            time.sleep(2)
-        except:
-            print("Metadata download problem/Flood Control Measures!")
-            bot.edit_message_text(text="Metadata download problem/Flood Control Measures!",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
-            try:
-                download.update()
-            except Exception as e:
-                if (str(e).endswith("is not found")):
-                    print("Metadata Cancelled/Failed")
-                    print("Metadata couldn't be downloaded")
-                    bot.edit_message_text(text="Metadata couldn't be downloaded",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
-                    return None
-            time.sleep(2)
-    time.sleep(2)
-    match = str(download.followed_by_ids[0])
-    downloads = aria2.get_downloads()
-    currdownload = None
-    for download in downloads:
-        if download.gid == match:
-            currdownload = download
-            break
-    print("Download complete")
-
-    markup = types.InlineKeyboardMarkup()
-
-    markup.add(types.InlineKeyboardButton(f"Resume", callback_data=f"Resume {currdownload.gid}"),
-               types.InlineKeyboardButton(f"Pause", callback_data=f"Pause {currdownload.gid}"),
-               types.InlineKeyboardButton(f"Remove", callback_data=f"Remove {currdownload.gid}"))
-
-    bot.edit_message_text(text="Download complete",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
-    prevmessage = None
-
-    while currdownload.is_active or not currdownload.is_complete:
-
-        try:
-            currdownload.update()
-        except Exception as e:
-            if (str(e).endswith("is not found")):
-                print("Magnet Deleted")
-                print("Magnet download was removed")
-                bot.edit_message_text(text="Magnet download was removed",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
-                break
-            print(e)
-            print("Issue in downloading!")
-
-        if currdownload.status == 'removed':
-            print("Magnet was cancelled")
-            print("Magnet download was cancelled")
-            bot.edit_message_text(text="Magnet download was cancelled",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
-            break
-
-        if currdownload.status == 'error':
-            print("Mirror had an error")
-            currdownload.remove(force=True, files=True)
-            print("Magnet failed to resume/download!\nRun /cancel once and try again.")
-            bot.edit_message_text(text="Magnet failed to resume/download!\nRun /cancel once and try again.",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
-            break
-
-        print(f"Magnet Status? {currdownload.status}")
-
-        if currdownload.status == "active":
-            try:
-                currdownload.update()
-                barop = progessbar(currdownload.completed_length,currdownload.total_length)
-
-                updateText = f"Downloading \n" \
-                             f"'{currdownload.name}'\n" \
-                             f"Progress : {hum_convert(currdownload.completed_length)}/{hum_convert(currdownload.total_length)} \n" \
-                             f"Peers:{currdownload.connections}\n" \
-                             f"Speed {hum_convert(currdownload.download_speed)}/s\n" \
-                             f"{barop}\n" \
-                             f"Free:{get_free_space_mb()}GB"
-
-                if prevmessage != updateText:
-                    print(f"更新状态\n{updateText}")
-                    bot.edit_message_text(text=updateText,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
-                    prevmessage = updateText
-                time.sleep(2)
-            except Exception as e:
-                if (str(e).endswith("is not found")):
-                    break
-                print(e)
-                print("Issue in downloading!")
-                time.sleep(2)
-        elif currdownload.status == "paused":
-            try:
-                currdownload.update()
-                barop = progessbar(currdownload.completed_length,currdownload.total_length)
-
-                updateText = f"Downloading \n" \
-                             f"'{currdownload.name}'\n" \
-                             f"Progress : {hum_convert(currdownload.completed_length)}/{hum_convert(currdownload.total_length)} \n" \
-                             f"Peers:{currdownload.connections}\n" \
-                             f"Speed {hum_convert(currdownload.download_speed)}/s\n" \
-                             f"{barop}\n" \
-                             f"Free:{get_free_space_mb()}GB"
-
-                if prevmessage != updateText:
-                    print(f"更新状态\n{updateText}")
-                    bot.edit_message_text(text=updateText,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
-                    prevmessage = updateText
-                time.sleep(2)
-            except Exception as e:
-                print(e)
-                print("Download Paused Flood")
-                time.sleep(2)
-        time.sleep(2)
-
-        time.sleep(1)
-
-    if currdownload.is_complete:
-        print(currdownload.name)
-        try:
-            print("开始上传")
-            file_dir=f"{currdownload.dir}/{currdownload.name}"
-            files_num=int(len(currdownload.files))
-            run_rclone(file_dir,currdownload.name,info=info,file_num=files_num)
-            currdownload.remove(force=True,files=True)
-
+            bot.infinity_polling()
         except Exception as e:
             print(e)
-            print("Upload Issue!")
-    return None
-
-def http_download(url,message):
-    try:
-        currdownload = aria2.add_uris([url])
-    except Exception as e:
-        print(e)
-        if (str(e).endswith("No URI to download.")):
-            print("No link provided!")
-            bot.send_message(chat_id=message.chat.id,text="No link provided!",parse_mode='Markdown')
-            return None
-
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(f"Resume", callback_data=f"Resume {currdownload.gid}"),
-               types.InlineKeyboardButton(f"Pause", callback_data=f"Pause {currdownload.gid}"),
-               types.InlineKeyboardButton(f"Remove", callback_data=f"Remove {currdownload.gid}"))
-    info=bot.send_message(chat_id=message.chat.id,text="Downloading",parse_mode='Markdown')
-    prevmessage=None
-    while currdownload.is_active or not currdownload.is_complete:
-
-        try:
-            currdownload.update()
-        except Exception as e:
-            if (str(e).endswith("is not found")):
-                print("url Deleted")
-                print("url download was removed")
-                bot.edit_message_text(text="url download was removed",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
-                break
-            print(e)
-            print("url in downloading!")
-
-        if currdownload.status == 'removed':
-            print("url was cancelled")
-            print("url download was cancelled")
-            bot.edit_message_text(text="Magnet download was cancelled",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
-            break
-
-        if currdownload.status == 'error':
-            print("url had an error")
-            currdownload.remove(force=True, files=True)
-            print("url failed to resume/download!.")
-            bot.edit_message_text(text="Magnet failed to resume/download!\nRun /cancel once and try again.",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
-            break
-
-        print(f"url Status? {currdownload.status}")
-
-        if currdownload.status == "active":
-            try:
-                currdownload.update()
-                barop = progessbar(currdownload.completed_length,currdownload.total_length)
-
-                updateText = f"Downloading \n" \
-                             f"'{currdownload.name}'\n" \
-                             f"Progress : {hum_convert(currdownload.completed_length)}/{hum_convert(currdownload.total_length)} \n" \
-                             f"Speed {hum_convert(currdownload.download_speed)}/s\n" \
-                             f"{barop}\n" \
-                             f"Free:{get_free_space_mb()}GB"
-
-                if prevmessage != updateText:
-                    print(f"更新状态\n{updateText}")
-                    bot.edit_message_text(text=updateText,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
-                    prevmessage = updateText
-                time.sleep(2)
-            except Exception as e:
-                if (str(e).endswith("is not found")):
-                    break
-                print(e)
-                print("Issue in downloading!")
-                time.sleep(2)
-        elif currdownload.status == "paused":
-            try:
-                currdownload.update()
-                barop = progessbar(currdownload.completed_length,currdownload.total_length)
-
-                updateText = f"Downloading \n" \
-                             f"'{currdownload.name}'\n" \
-                             f"Progress : {hum_convert(currdownload.completed_length)}/{hum_convert(currdownload.total_length)} \n" \
-                             f"Speed {hum_convert(currdownload.download_speed)}/s\n" \
-                             f"{barop}\n" \
-                             f"Free:{get_free_space_mb()}GB"
-
-                if prevmessage != updateText:
-                    print(f"更新状态\n{updateText}")
-                    bot.edit_message_text(text=updateText,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markup)
-                    prevmessage = updateText
-                time.sleep(2)
-            except Exception as e:
-                print(e)
-                print("Download Paused Flood")
-                time.sleep(2)
-        time.sleep(2)
-
-        time.sleep(1)
-    if currdownload.is_complete:
-        print(currdownload.name)
-        try:
-            print("开始上传")
-            file_dir=f"{currdownload.dir}/{currdownload.name}"
-            run_rclone(file_dir,currdownload.name,info=info,file_num=1)
-            currdownload.remove(force=True,files=True)
-
-        except Exception as e:
-            print(e)
-            print("Upload Issue!")
-    return None
+            time.sleep(20)
