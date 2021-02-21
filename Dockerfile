@@ -26,6 +26,7 @@ RUN pip3 install requests
 RUN pip3 install apscheduler
 RUN pip3 install psutil
 RUN pip3 install -U pytz
+RUN pip3 install -U flask
 #COPY bot /bot
 
 RUN sudo chmod 777 /root/.aria2/
