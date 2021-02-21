@@ -18,5 +18,5 @@ mv /my_aria2_bot/bot/* /bot/
 chmod 0777 /bot/ -R
 rm -rf /my_aria2_bot
 
-nohup aria2c --conf-path=/root/.aria2/aria2.conf --rpc-listen-port=$PORT --rpc-secret=$Aria2_secret &
-python3 /bot/main.py
+nohup aria2c --conf-path=/root/.aria2/aria2.conf --rpc-listen-port=8080 --rpc-secret=$Aria2_secret &
+python3 /bot/web.py
