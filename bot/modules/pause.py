@@ -1,7 +1,7 @@
 import aria2p
 import os
 Aria2_host=os.environ.get('Aria2_host')
-Aria2_port=os.environ.get('PORT')
+Aria2_port="8080"
 Aria2_secret=os.environ.get('Aria2_secret')
 
 aria2 = aria2p.API(

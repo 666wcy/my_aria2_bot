@@ -17,7 +17,7 @@ import threading
 import aria2p
 
 Aria2_host=os.environ.get('Aria2_host')
-Aria2_port=os.environ.get('PORT')
+Aria2_port="8080"
 Aria2_secret=os.environ.get('Aria2_secret')
 
 aria2 = aria2p.API(
@@ -191,7 +191,7 @@ def second_clock():
     except Exception as e:
         print(f"second_clock :{e}")
 
-if __name__ == '__main__':
+def start_bot():
     #scheduler = BlockingScheduler()
     scheduler = BackgroundScheduler()
 
@@ -201,7 +201,7 @@ if __name__ == '__main__':
 
     sys.stdout.flush()
     scheduler.start()
-    #bot.send_message(chat_id=Telegram_user_id,text="bot已上线")
+    bot.send_message(chat_id=Telegram_user_id,text="bot已上线")
     # Load next_step_handlers from save file (default "./.handlers-saves/step.save")
     # WARNING It will work only if enable_save_next_step_handlers was called!
     while True:
@@ -210,3 +210,7 @@ if __name__ == '__main__':
         except Exception as e:
             print(e)
             time.sleep(20)
+
+
+if __name__ == '__main__':
+    start_bot()
