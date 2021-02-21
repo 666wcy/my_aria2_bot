@@ -1,10 +1,9 @@
 from flask import Flask,request
 from requests import get,post
 import threading
-from main import *
+from main import start_bot
 status =""
-PORT=os.environ.get('PORT')
-app = Flask('__main__')
+app = Flask(__name__)
 SITE_NAME = 'http://127.0.0.1:6800/'
 
 @app.route('/jsonrpc/',methods=['POST'])
@@ -58,4 +57,7 @@ def proxyget():
     return get(url=url,params=par).content
 
 
-app.run(host='0.0.0.0', port=PORT)
+if __name__ == '__main__':
+
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
