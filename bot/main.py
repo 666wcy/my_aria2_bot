@@ -201,7 +201,7 @@ def second_clock():
     except Exception as e:
         print(f"second_clock :{e}")
 
-if __name__ == '__main__':
+def start_bot():
     #scheduler = BlockingScheduler()
     scheduler = BackgroundScheduler()
 
@@ -220,3 +220,7 @@ if __name__ == '__main__':
         except Exception as e:
             print(e)
             time.sleep(20)
+
+
+if __name__ == '__main__':
+    start_bot()
