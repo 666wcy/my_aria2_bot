@@ -201,11 +201,12 @@ def start_bot():
 
     sys.stdout.flush()
     scheduler.start()
-    bot.send_message(chat_id=Telegram_user_id,text="bot已上线")
+    #bot.send_message(chat_id=Telegram_user_id,text="bot已上线")
     # Load next_step_handlers from save file (default "./.handlers-saves/step.save")
     # WARNING It will work only if enable_save_next_step_handlers was called!
     while True:
         try:
+            
             bot.infinity_polling()
         except Exception as e:
             print(e)
