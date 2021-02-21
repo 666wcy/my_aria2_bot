@@ -5,7 +5,7 @@ import os
 from main import start_bot
 status =""
 app = Flask(__name__)
-SITE_NAME = 'http://127.0.0.1:6800/'
+SITE_NAME = 'http://127.0.0.1:8080/'
 
 @app.route('/jsonrpc/',methods=['POST'])
 def proxypost():
