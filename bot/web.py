@@ -14,7 +14,7 @@ def proxypost():
     #print(f'{SITE_NAME}{path}')
     url=f'{SITE_NAME}{path}?'
     #print(request.form)
-    student = request.data.decode('utf-8')
+    student = request.data
     #print(student)
     #获取到POST过来的数据，因为我这里传过来的数据需要转换一下编码。根据晶具体情况而定
     return (post(url=url,data=student).content)
