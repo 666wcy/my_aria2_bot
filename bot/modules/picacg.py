@@ -14,7 +14,16 @@ import subprocess
 import sys
 Telegram_bot_api=os.environ.get('Telegram_bot_api')
 bot = telebot.TeleBot(Telegram_bot_api)
+app_title=os.environ.get('Title')
 
+def wake_clock():
+    try:
+        print("任务正在进行,保持唤醒")
+        print(requests.get(url=f"https://{app_title}.herokuapp.com/"))
+        sys.stdout.flush()
+
+    except Exception as e:
+        print(f"wake_clock error :{e}")
 
 def run_upload_rclone(dir,title,info,file_num):
 
@@ -378,7 +387,7 @@ def add_download(call):
                 page = 1
                 img_name = 1
                 zhang = eps["title"]
-
+                wake_clock()
                 download_process_text=f"当前下载话:{zhang}\n" \
                                       f"下载进度:{hua_down_num}/{benzihua_num}\n"
 
