@@ -426,6 +426,7 @@ def add_download(call):
                 break
             mulu_page = mulu_page + 1
         print("开始压缩")
+        sys.stdout.flush()
         name = zip_ya(title)
         print(name)
         print("压缩完成，开始上传")
@@ -433,9 +434,11 @@ def add_download(call):
         try:
             run_upload_rclone(dir=name,title=title,info=info,file_num=1)
             print("uploading")
-        except:
+        except Exception as e:
+            print(f"{e}")
+            sys.stdout.flush()
             bot.send_message(message_chat_id, text="文件上传失败")
-        bot.delete_message(message_chat_id, message_id)
+        bot.delete_message(message_chat_id, message_id)        
         os.system("rm '" + name + "'")
 
 
