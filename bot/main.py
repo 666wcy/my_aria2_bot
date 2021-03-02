@@ -13,6 +13,7 @@ from modules.new_download import the_download,http_download
 from modules.resume import file_resume
 from modules.pause import file_pause
 from modules.rclone import run_rclonecopy
+from modules.picacg import *
 import threading
 import aria2p
 
@@ -42,6 +43,19 @@ BOT_name=bot.get_me().username
            BotCommand("del", "后接hash，删除种子")]
 print(bot.set_my_commands(commands=command))'''
 
+@bot.message_handler(commands=['search'])
+def seach_main(message):
+    seach(message=message)
+    return
+
+
+@bot.callback_query_handler(func=lambda call: call.data == "down")
+def add_down(call):
+    bot.answer_callback_query(callback_query_id=call.id,text="开始下载",cache_time=3)
+    add_download(call=call)
+    return
+
+###
 
 @bot.callback_query_handler(func=lambda call: "Pause" in call.data)
 def add_pause(call):
