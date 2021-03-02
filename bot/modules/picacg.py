@@ -12,6 +12,8 @@ import time
 import requests
 import subprocess
 import sys
+import datetime
+import pytz
 Telegram_bot_api=os.environ.get('Telegram_bot_api')
 bot = telebot.TeleBot(Telegram_bot_api)
 app_title=os.environ.get('Title')
@@ -32,9 +34,9 @@ def run_upload_rclone(dir,title,info,file_num):
 
     name=f"{str(info.message_id)}_{str(info.chat.id)}"
     if int(file_num)==1:
-        shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
+        shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}/{upload_data}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
     else:
-        shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}/{title}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
+        shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}/{upload_data}/{title}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
     print(shell)
     cmd = subprocess.Popen(shell, stdin=subprocess.PIPE, stderr=sys.stderr, close_fds=True,
                            stdout=subprocess.PIPE, universal_newlines=True, shell=True, bufsize=1)
