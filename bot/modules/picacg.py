@@ -423,7 +423,7 @@ def add_download(call):
             if book_pages == mulu_page:
                 break
             mulu_page = mulu_page + 1
-
+        print("开始压缩")
         name = zip_ya(title)
         print(name)
         print("压缩完成，开始上传")
