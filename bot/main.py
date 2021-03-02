@@ -13,6 +13,7 @@ from modules.new_download import the_download,http_download
 from modules.resume import file_resume
 from modules.pause import file_pause
 from modules.rclone import run_rclonecopy
+from modules.picacg import *
 import threading
 import aria2p
 
@@ -60,6 +61,18 @@ def check_group(user_id):
             bot.send_message(chat_id=user_id,text=text)
             return False
 
+
+@bot.message_handler(commands=['search'],func=lambda message:message.chat.type == "private" and check_group(user_id=message.from_user.id)==True)
+def seach_main(message):
+    seach(message=message)
+    return
+
+
+@bot.callback_query_handler(func=lambda call: call.data == "down")
+def add_down(call):
+    bot.answer_callback_query(callback_query_id=call.id,text="开始下载",cache_time=3)
+    add_download(call=call)
+    return
 
 @bot.callback_query_handler(func=lambda call: "Pause" in call.data)
 def add_pause(call):
@@ -191,6 +204,7 @@ def second_clock():
     except Exception as e:
         print(f"second_clock :{e}")
 
+
 def start_bot():
     #scheduler = BlockingScheduler()
     scheduler = BackgroundScheduler()
@@ -206,7 +220,7 @@ def start_bot():
     # WARNING It will work only if enable_save_next_step_handlers was called!
     while True:
         try:
-            
+
             bot.infinity_polling()
         except Exception as e:
             print(e)
