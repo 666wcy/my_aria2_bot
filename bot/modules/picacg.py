@@ -14,6 +14,7 @@ import subprocess
 import sys
 import datetime
 import pytz
+tz = pytz.timezone('Asia/Shanghai') #东八区
 Telegram_bot_api=os.environ.get('Telegram_bot_api')
 bot = telebot.TeleBot(Telegram_bot_api)
 app_title=os.environ.get('Title')
@@ -31,7 +32,8 @@ def run_upload_rclone(dir,title,info,file_num):
 
     Rclone_remote=os.environ.get('Remote')
     Upload=os.environ.get('Upload')
-
+    upload_data = datetime.datetime.fromtimestamp(int(time.time()),tz).strftime('%Y年%m月%d日')
+	
     name=f"{str(info.message_id)}_{str(info.chat.id)}"
     if int(file_num)==1:
         shell=f"rclone copy \"{dir}\" \"{Rclone_remote}:{Upload}/{upload_data}\"  -v --stats-one-line --stats=1s --log-file=\"{name}.log\" "
