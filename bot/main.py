@@ -106,8 +106,7 @@ def start_rclonecopy(message):
         seconddir= message.text.split()[2]
         print(f"rclone {firstdir} {seconddir}")
         sys.stdout.flush()
-        t1 = threading.Thread(target=run_rclonecopy, args=(firstdir,seconddir,message))
-        t1.start()
+        run_rclonecopy(onedir=firstdir,twodir=seconddir,message=message)
     except Exception as e:
         print(f"rclonecopy :{e}")
         sys.stdout.flush()
