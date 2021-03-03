@@ -14,7 +14,7 @@ def run_rclonecopy(onedir,twodir,message):
     shell=f"rclone copy {onedir} {twodir}  -v --stats-one-line --stats=3s --log-file=\"{name}.log\" "
     print(shell)
     sys.stdout.flush()
-    info=bot.send_message(chat_id=message.chat.id,text=shell,parse_mode='Markdown')
+    info=bot.send_message(chat_id=message.chat.id,text=shell)
 
     cmd = subprocess.Popen(shell, stdin=subprocess.PIPE, stderr=sys.stderr, close_fds=True,
                            stdout=subprocess.PIPE, universal_newlines=True, shell=True, bufsize=1)
