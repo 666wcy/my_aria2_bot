@@ -12,10 +12,10 @@ def run_rclonecopy(onedir,twodir,message):
 
     name=f"{str(message.message_id)}_{str(message.chat.id)}"
     shell=f"rclone copy {onedir} {twodir}  -v --stats-one-line --stats=3s --log-file=\"{name}.log\" "
-
-    info=bot.send_message(chat_id=message.chat.id,text=shell,parse_mode='Markdown')
     print(shell)
     sys.stdout.flush()
+    info=bot.send_message(chat_id=message.chat.id,text=shell,parse_mode='Markdown')
+
     cmd = subprocess.Popen(shell, stdin=subprocess.PIPE, stderr=sys.stderr, close_fds=True,
                            stdout=subprocess.PIPE, universal_newlines=True, shell=True, bufsize=1)
     # 实时输出
