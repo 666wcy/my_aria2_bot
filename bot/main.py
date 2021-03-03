@@ -104,6 +104,7 @@ def start_rclonecopy(message):
     try:
         firstdir = message.text.split()[1]
         seconddir= message.text.split()[2]
+        print(f"rclone {firstdir} {seconddir}")
         t1 = threading.Thread(target=run_rclonecopy, args=(firstdir,seconddir,message))
         t1.start()
     except Exception as e:
@@ -235,6 +236,3 @@ def start_bot():
             print(e)
             time.sleep(20)
 
-
-if __name__ == '__main__':
-    start_bot()
