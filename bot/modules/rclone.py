@@ -10,8 +10,8 @@ bot = telebot.TeleBot(Telegram_bot_api)
 
 def run_rclonecopy(onedir,twodir,message):
 
-    name=message.chat.id
-    shell=f"rclone copy {onedir} {twodir}  -v --stats-one-line --stats=5s --log-file=\"{name}.log\" "
+    name=f"{str(message.message_id)}_{str(message.chat.id)}"
+    shell=f"rclone copy {onedir} {twodir}  -v --stats-one-line --stats=3s --log-file=\"{name}.log\" "
 
     info=bot.send_message(chat_id=message.chat.id,text=shell,parse_mode='Markdown')
     print(shell)
@@ -20,7 +20,7 @@ def run_rclonecopy(onedir,twodir,message):
     # 实时输出
     temp_text=None
     while True:
-        time.sleep(10)
+        time.sleep(6)
         fname = f'{name}.log'
         with open(fname, 'r') as f:  #打开文件
             try:
