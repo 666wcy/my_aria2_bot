@@ -105,10 +105,12 @@ def start_rclonecopy(message):
         firstdir = message.text.split()[1]
         seconddir= message.text.split()[2]
         print(f"rclone {firstdir} {seconddir}")
+        sys.stdout.flush()
         t1 = threading.Thread(target=run_rclonecopy, args=(firstdir,seconddir,message))
         t1.start()
     except Exception as e:
         print(f"rclonecopy :{e}")
+        sys.stdout.flush()
 
 @bot.message_handler(commands=['help'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
 def start_help(message):
