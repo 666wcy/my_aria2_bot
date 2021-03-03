@@ -15,6 +15,7 @@ def run_rclonecopy(onedir,twodir,message):
 
     info=bot.send_message(chat_id=message.chat.id,text=shell,parse_mode='Markdown')
     print(shell)
+    sys.stdout.flush()
     cmd = subprocess.Popen(shell, stdin=subprocess.PIPE, stderr=sys.stderr, close_fds=True,
                            stdout=subprocess.PIPE, universal_newlines=True, shell=True, bufsize=1)
     # 实时输出
