@@ -37,7 +37,7 @@ def run_rclonecopy(onedir,twodir,message):
                 if temp_text != last_line and "ETA" in last_line:
                     print(last_line)
                     sys.stdout.flush()
-                    log_time,file_part,upload_Progress,upload_speed,part_time=re.findall("(.*?)INFO.*?(\d.*?),.*?(\d+%),.*?(\d.*?s).*?ETA.*?(\d.*?s)",last_line , re.S)[0]
+                    log_time,file_part,upload_Progress,upload_speed,part_time=re.findall("(.*?)INFO.*?(\d.*?),.*?(\d+%),.*?(\d.*?s).*?ETA.*?(\d.*?)",last_line , re.S)[0]
                     text=f"源地址:`{onedir}`\n" \
                          f"目标地址:`{twodir}`\n" \
                          f"更新时间：`{log_time}`\n" \
