@@ -111,9 +111,7 @@ def the_download(url,message):
     info=bot.send_message(chat_id=message.chat.id,text="Downloading",parse_mode='Markdown')
     markupmeta = types.InlineKeyboardMarkup()
 
-    markupmeta.add(types.InlineKeyboardButton(f"Resume", callback_data=f"Resume {download.gid}"),
-               types.InlineKeyboardButton(f"Pause", callback_data=f"Pause {download.gid}"),
-               types.InlineKeyboardButton(f"Remove", callback_data=f"Remove {download.gid}"))
+    markupmeta.add(types.InlineKeyboardButton(f"Remove", callback_data=f"Remove {download.gid}"))
     while download.is_active:
         try:
             download.update()
@@ -145,6 +143,12 @@ def the_download(url,message):
                     bot.edit_message_text(text="Metadata couldn't be downloaded",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
                     return None
             time.sleep(2)
+    if download.status == 'removed':
+        print("Magnet was cancelled")
+        print("Magnet download was cancelled")
+        bot.edit_message_text(text="Magnet download was cancelled",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
+        return     
+    
     time.sleep(2)
     match = str(download.followed_by_ids[0])
     downloads = aria2.get_downloads()
