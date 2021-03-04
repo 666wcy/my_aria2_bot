@@ -112,11 +112,14 @@ def the_download(url,message):
     markupmeta = types.InlineKeyboardMarkup()
 
     markupmeta.add(types.InlineKeyboardButton(f"Remove", callback_data=f"Remove {download.gid}"))
+    temp_text=""
     while download.is_active:
         try:
             download.update()
             print("Downloading metadata")
-            bot.edit_message_text(text="Downloading metadata",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markupmeta)
+            if temp_text!="Downloading metadata":
+                bot.edit_message_text(text="Downloading metadata",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markupmeta)
+                temp_text="Downloading metadata"
             barop = progessbar(download.completed_length,download.total_length)
 
             updateText = f"Downloading \n" \
@@ -132,21 +135,16 @@ def the_download(url,message):
                 prevmessagemag = updateText
             time.sleep(2)
         except:
-            if download.status == 'removed':
-                print("Magnet was cancelled")
-                print("Magnet download was cancelled")
-                bot.edit_message_text(text="Magnet download was cancelled",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
-                return
-            print("Metadata download problem/Flood Control Measures!")
-            bot.edit_message_text(text="Metadata download problem/Flood Control Measures!",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markupmeta)
-            
+
             try:
                 download.update()
             except Exception as e:
                 if (str(e).endswith("is not found")):
                     print("Metadata Cancelled/Failed")
                     print("Metadata couldn't be downloaded")
-                    bot.edit_message_text(text="Metadata couldn't be downloaded",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
+                    if temp_text!="Metadata Cancelled/Failed":
+                        bot.edit_message_text(text="Metadata Cancelled/Failed",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
+                        temp_text="Metadata Cancelled/Failed"
                     return None
             time.sleep(2)
 
