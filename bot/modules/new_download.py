@@ -109,11 +109,16 @@ def the_download(url,message):
             return None
     prevmessagemag = None
     info=bot.send_message(chat_id=message.chat.id,text="Downloading",parse_mode='Markdown')
+    markupmeta = types.InlineKeyboardMarkup()
+
+    markupmeta.add(types.InlineKeyboardButton(f"Resume", callback_data=f"Resume {download.gid}"),
+               types.InlineKeyboardButton(f"Pause", callback_data=f"Pause {download.gid}"),
+               types.InlineKeyboardButton(f"Remove", callback_data=f"Remove {download.gid}"))
     while download.is_active:
         try:
             download.update()
             print("Downloading metadata")
-            bot.edit_message_text(text="Downloading metadata",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
+            bot.edit_message_text(text="Downloading metadata",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markupmeta)
             barop = progessbar(download.completed_length,download.total_length)
 
             updateText = f"Downloading \n" \
@@ -130,7 +135,7 @@ def the_download(url,message):
             time.sleep(2)
         except:
             print("Metadata download problem/Flood Control Measures!")
-            bot.edit_message_text(text="Metadata download problem/Flood Control Measures!",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
+            bot.edit_message_text(text="Metadata download problem/Flood Control Measures!",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markupmeta)
             try:
                 download.update()
             except Exception as e:
