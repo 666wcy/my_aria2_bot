@@ -132,8 +132,14 @@ def the_download(url,message):
                 prevmessagemag = updateText
             time.sleep(2)
         except:
+            if download.status == 'removed':
+                print("Magnet was cancelled")
+                print("Magnet download was cancelled")
+                bot.edit_message_text(text="Magnet download was cancelled",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
+                return
             print("Metadata download problem/Flood Control Measures!")
             bot.edit_message_text(text="Metadata download problem/Flood Control Measures!",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown', reply_markup=markupmeta)
+            
             try:
                 download.update()
             except Exception as e:
@@ -143,12 +149,8 @@ def the_download(url,message):
                     bot.edit_message_text(text="Metadata couldn't be downloaded",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
                     return None
             time.sleep(2)
-    if download.status == 'removed':
-        print("Magnet was cancelled")
-        print("Magnet download was cancelled")
-        bot.edit_message_text(text="Magnet download was cancelled",chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
-        return     
-    
+
+
     time.sleep(2)
     match = str(download.followed_by_ids[0])
     downloads = aria2.get_downloads()
