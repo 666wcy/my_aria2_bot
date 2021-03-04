@@ -1,26 +1,11 @@
-import aria2p
-import os
 import time
-import telebot
 from telebot import types
 import subprocess
 import sys
-import platform
-import ctypes
+import threading
 import re
+from modules.creat_config import *
 
-Telegram_bot_api=os.environ.get('Telegram_bot_api')
-Aria2_host=os.environ.get('Aria2_host')
-Aria2_port="8080"
-Aria2_secret=os.environ.get('Aria2_secret')
-bot = telebot.TeleBot(Telegram_bot_api)
-aria2 = aria2p.API(
-    aria2p.Client(
-        host=Aria2_host,
-        port=int(Aria2_port),
-        secret=Aria2_secret
-    )
-)
 
 def get_free_space_mb():
     result=os.statvfs('/root/')
@@ -369,3 +354,42 @@ def http_download(url,message):
             print(e)
             print("Upload Issue!")
     return None
+
+
+@bot.message_handler(commands=['magnet'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
+def start_download(message):
+    try:
+        keywords = str(message.text)
+        if str(BOT_name) in keywords:
+            keywords = keywords.replace(f"/magnet@{BOT_name} ", "")
+            print(keywords)
+            t1 = threading.Thread(target=the_download, args=(keywords,message))
+            t1.start()
+        else:
+            keywords = keywords.replace(f"/magnet ", "")
+            print(keywords)
+            t1 = threading.Thread(target=the_download, args=(keywords,message))
+            t1.start()
+
+    except Exception as e:
+        print(f"magnet :{e}")
+
+@bot.message_handler(commands=['mirror'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
+def start_http_download(message):
+    try:
+        keywords = str(message.text)
+        if str(BOT_name) in keywords:
+            keywords = keywords.replace(f"/mirror@{BOT_name} ", "")
+            print(keywords)
+            t1 = threading.Thread(target=http_download, args=(keywords,message))
+            t1.start()
+        else:
+            keywords = keywords.replace(f"/mirror ", "")
+            print(keywords)
+            t1 = threading.Thread(target=http_download, args=(keywords,message))
+            t1.start()
+
+    except Exception as e:
+        print(f"start_http_download :{e}")
+
+

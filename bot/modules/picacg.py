@@ -1,20 +1,16 @@
 # -*- coding: utf-8 -*-
-import telebot
 import hmac
 import zipfile
 import uuid
 from telebot import types
 import hashlib
 import json
-import os
 import re
 import time
 import requests
 import subprocess
 import sys
-Telegram_bot_api=os.environ.get('Telegram_bot_api')
-bot = telebot.TeleBot(Telegram_bot_api)
-app_title=os.environ.get('Title')
+from modules.creat_config import *
 
 def wake_clock():
     try:
@@ -424,6 +420,7 @@ def add_download(call):
                 break
             mulu_page = mulu_page + 1
         print("开始压缩")
+        sys.stdout.flush()
         name = zip_ya(title)
         print(name)
         print("压缩完成，开始上传")
@@ -431,10 +428,24 @@ def add_download(call):
         try:
             run_upload_rclone(dir=name,title=title,info=info,file_num=1)
             print("uploading")
-        except:
+        except Exception as e:
+            print(f"{e}")
+            sys.stdout.flush()
             bot.send_message(message_chat_id, text="文件上传失败")
         bot.delete_message(message_chat_id, message_id)
         os.system("rm '" + name + "'")
+
+
+@bot.message_handler(commands=['search'])
+def seach_main(message):
+    seach(message=message)
+    return
+
+@bot.callback_query_handler(func=lambda call: call.data == "down")
+def add_down(call):
+    bot.answer_callback_query(callback_query_id=call.id,text="开始下载",cache_time=3)
+    add_download(call=call)
+    return
 
 
 

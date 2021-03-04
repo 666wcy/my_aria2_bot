@@ -1,12 +1,22 @@
-import os
 import time
-import telebot
 import subprocess
 import sys
 import re
+from modules.creat_config import *
 
-Telegram_bot_api=os.environ.get('Telegram_bot_api')
-bot = telebot.TeleBot(Telegram_bot_api)
+@bot.message_handler(commands=['rclonecopy'],func=lambda message:str(message.chat.id) == str(Telegram_user_id))
+def start_rclonecopy(message):
+    try:
+        firstdir = message.text.split()[1]
+        seconddir= message.text.split()[2]
+        print(f"rclone {firstdir} {seconddir}")
+        sys.stdout.flush()
+        run_rclonecopy(onedir=firstdir,twodir=seconddir,message=message)
+    except Exception as e:
+        print(f"rclonecopy :{e}")
+        sys.stdout.flush()
+
+
 
 def run_rclonecopy(onedir,twodir,message):
 

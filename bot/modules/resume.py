@@ -1,16 +1,4 @@
-import aria2p
-import os
-Aria2_host=os.environ.get('Aria2_host')
-Aria2_port="8080"
-Aria2_secret=os.environ.get('Aria2_secret')
-
-aria2 = aria2p.API(
-    aria2p.Client(
-        host=Aria2_host,
-        port=int(Aria2_port),
-        secret=Aria2_secret
-    )
-)
+from modules.creat_config import *
 
 def file_resume(gid):
     print("开始任务")
@@ -27,3 +15,18 @@ def file_resume(gid):
     except Exception as e:
         print (e)
         return f"\n开始失败：{e}"
+
+
+@bot.callback_query_handler(func=lambda call: "Resume" in call.data)
+def add_resume(call):
+    try:
+        print(call)
+        caption = str(call.message.text)
+        print(caption)
+        print(call.data)
+        key_data=str(call.data).replace("Resume ","")
+        print(key_data)
+        text=file_resume(key_data)
+        bot.answer_callback_query(callback_query_id=call.id,text=text,cache_time=3)
+    except Exception as e:
+        print(f"Resume :{e}")
