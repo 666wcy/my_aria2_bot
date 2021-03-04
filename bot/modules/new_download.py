@@ -393,3 +393,30 @@ def start_http_download(message):
         print(f"start_http_download :{e}")
 
 
+@bot.message_handler(commands=['tgfile'])
+def send_telegram_file(message):
+    bot.send_message(chat_id=message.chat.id, text="请发送文件,或输入 /cancel 取消",parse_mode="MarkdownV2")
+    bot.register_next_step_handler(message, get_telegram_file)
+
+def get_telegram_file(message):
+    print(message)
+
+    if message.text=="/cancel":
+        bot.send_message(chat_id=message.chat.id, text="已退出搜图模式", parse_mode="MarkdownV2")
+        return
+    if message.content_type!="document":
+        bot.send_message(chat_id=message.chat.id, text="请发送文件,或输入 /cancel 取消",parse_mode="MarkdownV2")
+
+        bot.register_next_step_handler(message,get_telegram_file)
+        return
+    else:
+        #url = bot.get_file_url(message.document.file_id)
+        file_url=bot.get_file_url(file_id=message.document.file_id)
+        print(file_url)
+        t1 = threading.Thread(target=the_download, args=(file_url,message))
+        t1.start()
+        
+
+        #bot.send_message(chat_id=message.chat.id, text="搜索完成", parse_mode="MarkdownV2")
+
+
