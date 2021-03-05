@@ -18,6 +18,8 @@ from modules.delete import *
 
 from modules.rclone import *
 
+from modules.pixiv_new import *
+
 
 '''command = [BotCommand("status","查看所有种子状态"),
            BotCommand("down", "后接磁力链接，下载种子"),
