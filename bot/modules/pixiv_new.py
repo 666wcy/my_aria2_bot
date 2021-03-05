@@ -42,7 +42,7 @@ def run_upload_rclone(dir,title,info,file_num):
 
                 print (f"上传中\n{last_line}")
                 if temp_text != last_line and "ETA" in last_line:
-                    log_time,file_part,upload_Progress,upload_speed,part_time=re.findall("(.*?)INFO.*?(\d.*?),.*?(\d+%),.*?(\d.*?s).*?ETA.*?(\d.*?s)",last_line , re.S)[0]
+                    log_time,file_part,upload_Progress,upload_speed,part_time=re.findall("(.*?)INFO.*?(\d.*?),.*?(\d+%),.*?(\d.*?s).*?ETA.*?(\d.*?)",last_line , re.S)[0]
                     text=f"{title}\n" \
                          f"更新时间：`{log_time}`\n" \
                          f"上传部分：`{file_part}`\n" \
@@ -189,6 +189,7 @@ def start_download_pixiv(message):
                  f"Progessbar:{progessbar(img_su_num,img_num)}"
             bot.edit_message_text(text=text,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
         print("开始压缩")
+        bot.send_message(message.chat_id, text="文件上传失败")
         sys.stdout.flush()
         name = zip_ya(author)
         print(name)
