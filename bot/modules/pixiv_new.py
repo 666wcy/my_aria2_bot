@@ -102,7 +102,7 @@ def download(url, title,author, id):
         if "jpg" in url:
             with open(f'{author}\\{title}.jpg', 'wb') as f:
                 f.write(r.content)
-            print("下载成功:" + title + "_id" + id )
+            print("下载成功:" + title )
 
             return True
         elif "png" in url:
@@ -154,9 +154,9 @@ def start_download_pixiv(message):
         keywords = keywords.replace(f"/pixivuser ", "")
         print(keywords)
         artistid = int(keywords)
-        idurl = "https://www.pixiv.net/ajax/user/%d/profile/all" % artistid
+        idurl = f"https://www.pixiv.net/ajax/user/{artistid}/profile/all"
         html2 = requests.get(idurl, headers=header)
-        print(html2.json()['body']['illusts'])
+
 
         illusts=html2.json()['body']['illusts']
         info=bot.send_message(chat_id=message.chat.id,text="开始下载")
@@ -173,7 +173,9 @@ def start_download_pixiv(message):
 
             #.author_details.profile_img.main
             author=f"{info_json['body']['author_details']['user_name']}"
+            
             title=str(title).replace("#","").replace(author,"").replace(":","").replace("@","").replace("/","")
+            author=str(author).replace(":","").replace("@","").replace("/","")
             print(img_url)
 
             download_result=download(url=img_url,title=title,author=author,id=id)
@@ -189,7 +191,6 @@ def start_download_pixiv(message):
                  f"Progessbar:{progessbar(img_su_num,img_num)}"
             bot.edit_message_text(text=text,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
         print("开始压缩")
-        bot.send_message(message.chat_id, text="文件上传失败")
         sys.stdout.flush()
         name = zip_ya(author)
         print(name)
@@ -208,6 +209,7 @@ def start_download_pixiv(message):
 
     except Exception as e:
         print(e)
+        sys.stdout.flush()
         return
 
 
