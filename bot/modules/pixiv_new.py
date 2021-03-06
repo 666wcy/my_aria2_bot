@@ -173,7 +173,7 @@ def start_download_pixiv(message):
 
             #.author_details.profile_img.main
             author=f"{info_json['body']['author_details']['user_name']}"
-            title=str(title).replace("#","").replace(author,"").replace(":","")
+            title=str(title).replace("#","").replace(author,"").replace(":","").replace("@","")
             print(img_url)
 
             download_result=download(url=img_url,title=title,author=author,id=id)
