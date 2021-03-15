@@ -179,7 +179,7 @@ def start_download_pixiv(message):
             author=str(author).replace(":","").replace("@","").replace("/","")
             print(img_url)
 
-            download_result=download(url=img_url,title=title,author=author,id=id)
+            download_result=download(url=img_url,title=title,author=keywords,id=id)
             if download_result==True:
                 img_su_num=img_su_num+1
             else:
@@ -212,4 +212,12 @@ def start_download_pixiv(message):
         print(e)
         sys.stdout.flush()
         return
+
+
+
+
+
+
+
+
 
