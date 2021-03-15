@@ -43,6 +43,7 @@ def run_upload_rclone(dir,title,info,file_num):
                 print (f"上传中\n{last_line}")
                 sys.stdout.flush()
                 if temp_text != last_line and "ETA" in last_line:
+                    print(last_line)
                     log_time,file_part,upload_Progress,upload_speed,part_time=re.findall("(.*?)INFO.*?(\d.*?),.*?(\d+%),.*?(\d.*?s).*?ETA.*?(\d.*?)",last_line , re.S)[0]
                     text=f"{title}\n" \
                          f"更新时间：`{log_time}`\n" \
@@ -204,7 +205,7 @@ def start_download_pixiv(message):
             print(f"{e}")
             sys.stdout.flush()
             bot.send_message(message.chat_id, text="文件上传失败")
-        bot.delete_message(message.chat_id, message.message_id)
+        bot.delete_message(message.chat.id, message.message_id)
         os.system("rm '" + name + "'")
 
 
