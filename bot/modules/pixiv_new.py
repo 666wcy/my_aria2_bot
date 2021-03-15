@@ -41,6 +41,7 @@ def run_upload_rclone(dir,title,info,file_num):
                         break
 
                 print (f"上传中\n{last_line}")
+                sys.stdout.flush()
                 if temp_text != last_line and "ETA" in last_line:
                     log_time,file_part,upload_Progress,upload_speed,part_time=re.findall("(.*?)INFO.*?(\d.*?),.*?(\d+%),.*?(\d.*?s).*?ETA.*?(\d.*?)",last_line , re.S)[0]
                     text=f"{title}\n" \
@@ -173,7 +174,7 @@ def start_download_pixiv(message):
 
             #.author_details.profile_img.main
             author=f"{info_json['body']['author_details']['user_name']}"
-            
+
             title=str(title).replace("#","").replace(author,"").replace(":","").replace("@","").replace("/","")
             author=str(author).replace(":","").replace("@","").replace("/","")
             print(img_url)
@@ -188,14 +189,14 @@ def start_download_pixiv(message):
                  f"Number of pictures:{img_num}\n" \
                  f"Number of successes:{img_su_num}\n" \
                  f"Number of errors:{img_er_num}\n" \
-                 f"Progessbar:{progessbar(img_su_num,img_num)}"
+                 f"Progessbar:\n{progessbar(img_su_num,img_num)}"
             bot.edit_message_text(text=text,chat_id=info.chat.id,message_id=info.message_id,parse_mode='Markdown')
         print("开始压缩")
         sys.stdout.flush()
-        name = zip_ya(author)
+        name = zip_ya(keywords)
         print(name)
         print("压缩完成，开始上传")
-        del_path(author)
+        del_path(keywords)
         try:
             run_upload_rclone(dir=name,title=name,info=info,file_num=1)
             print("uploading")
@@ -211,12 +212,4 @@ def start_download_pixiv(message):
         print(e)
         sys.stdout.flush()
         return
-
-
-
-
-
-
-
-
 
